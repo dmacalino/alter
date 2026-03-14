@@ -1,7 +1,10 @@
 {
   "name": "alter-prototype",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "start": "serve . -l tcp://0.0.0.0:$PORT"
+    "start": "npx serve . --listen $PORT"
   },
   "dependencies": {
     "serve": "^14.2.6"
