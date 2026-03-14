@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALTER — Future Snapshot Simulator</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --teal: #5ecfbf;
+      --rose: #e8927c;
+      --gold: #d4a96a;
+      --text: rgba(255,255,255,.92);
+      --text-2: rgba(255,255,255,.60);
+      --text-3: rgba(255,255,255,.35);
+      --surface: rgba(255,255,255,.055);
+      --surface-h: rgba(255,255,255,.085);
+      --border: rgba(255,255,255,.10);
+      --border-b: rgba(255,255,255,.22);
+      --low-col: #e8927c;
+      --med-col: #d4a96a;
+      --high-col: #5ecfbf;
+      --r-card: 28px;
+      --r-pill: 99px;
+      --r-sm: 12px;
+      --shadow: 0 32px 80px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.3);
+      --tr: .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 300;
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, #1a2a3a 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, #1d1523 0%, transparent 60%),
+        #0a0f16;
+    }
+
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+      opacity: .18;
+    }
+
+    body::before {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--teal), transparent 70%);
+      top: -150px;
+      left: -100px;
+      animation: drift1 18s ease-in-out infinite alternate;
+    }
+
+    body::after {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, var(--rose), transparent 70%);
+      bottom: -100px;
+      right: -100px;
+      animation: drift2 14s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift1 { to { transform: translate(80px,60px); } }
+    @keyframes drift2 { to { transform: translate(-60px,-80px); } }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .navbar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 40px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      background: rgba(10,15,22,.4);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+    }
+
+    .logo em {
+      font-style: italic;
+      color: var(--teal);
+    }
+
+    .nav-tag {
+      font-size: .68rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+    }
+
+    .page {
+      width: 100%;
+      max-width: 640px;
+      padding: 48px 24px 80px;
+      display: none;
+      animation: pageIn .5s ease both;
+    }
+
+    .page.active {
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+
+    @keyframes pageIn {
+      from { opacity:0; transform:translateY(20px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+
+    .intro { text-align: center; padding-top: 8px; }
+
+    .eyebrow {
+      font-size: .72rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 14px;
+    }
+
+    .intro h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem,5vw,2.8rem);
+      font-weight: 400;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+
+    .intro h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .intro p {
+      font-size: .92rem;
+      color: var(--text-2);
+      line-height: 1.7;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .glass {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-card);
+      backdrop-filter: blur(20px);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 8px; }
+
+    .field label, .sub-label {
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      font-weight: 500;
+    }
+
+    .field input {
+      width: 100%;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 13px 16px;
+      font-family: 'Outfit', sans-serif;
+      font-size: .95rem;
+      font-weight: 300;
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--tr), background var(--tr);
+    }
+
+    .field input::placeholder { color: var(--text-3); }
+
+    .field input:focus {
+      border-color: var(--teal);
+      background: rgba(94,207,191,.06);
+    }
+
+    .fdivider { border: none; border-top: 1px solid var(--border); }
+
+    .slider-group { display: flex; flex-direction: column; gap: 18px; }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 88px 1fr 88px;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sl-l, .sl-r {
+      font-size: .82rem;
+      color: var(--text-2);
+    }
+
+    .sl-l { text-align: right; }
+    .sl-r { text-align: left; }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--teal);
+      outline: none;
+      cursor: pointer;
+      opacity: 0.75;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 999px;
+      background: var(--teal);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 4px;
+      border-radius: 999px;
+      background: var(--teal);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--teal);
+      border: 2px solid #0a0f16;
+      box-shadow: 0 0 0 4px rgba(94,207,191,.2);
+      margin-top: -8px;
+      cursor: pointer;
+      transition: transform var(--tr);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--teal);
+      border: 2px solid #0a0f16;
+      box-shadow: 0 0 0 4px rgba(94,207,191,.2);
+      cursor: pointer;
+      transition: transform var(--tr);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    input[type="range"]::-moz-range-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .val-chip {
+      cursor: pointer;
+      padding: 8px 18px;
+      border-radius: var(--r-pill);
+      border: 1px solid var(--border);
+      background: transparent;
+      font-family: 'Outfit', sans-serif;
+      font-size: .85rem;
+      color: var(--text-2);
+      transition: all var(--tr);
+      user-select: none;
+    }
+
+    .val-chip:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .val-chip.active {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #0a0f16;
+      font-weight: 600;
+    }
+
+    .chip-meta {
+      font-size: .75rem;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    .error-msg {
+      font-size: .8rem;
+      color: var(--rose);
+      text-align: center;
+      display: none;
+    }
+
+    .btn-cta {
+      width: 100%;
+      padding: 17px;
+      background: linear-gradient(135deg, var(--teal), #3eb8a8);
+      color: #0a0f16;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      border: none;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(94,207,191,.25);
+      transition: opacity var(--tr), transform var(--tr);
+    }
+
+    .btn-cta:hover {
+      opacity: .9;
+      transform: translateY(-2px);
+    }
+
+    .back-btn {
+      background: transparent;
+      border: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: .82rem;
+      color: var(--text-3);
+      cursor: pointer;
+      transition: color var(--tr);
+      padding: 0;
+      text-align: left;
+    }
+
+    .back-btn:hover { color: var(--text-2); }
+
+    .sim-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.4rem,3.5vw,1.8rem);
+      font-weight: 400;
+      line-height: 1.3;
+    }
+
+    .sim-title em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .story-card {
+      background: var(--surface);
+      border: 1px solid var(--border-b);
+      border-radius: var(--r-card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px);
+      overflow: hidden;
+    }
+
+    .card-nav { display: flex; gap: 12px; }
+
+    .nav-btn {
+      flex: 1;
+      padding: 13px 20px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      font-family: 'Outfit', sans-serif;
+      font-size: .9rem;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all var(--tr);
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      border-color: var(--border-b);
+      color: var(--text);
+      background: var(--surface-h);
+    }
+
+    .nav-btn:disabled {
+      opacity: .25;
+      cursor: default;
+    }
+
+    .nav-btn.fwd {
+      background: linear-gradient(135deg, var(--teal), #3eb8a8);
+      border-color: transparent;
+      color: #0a0f16;
+      font-weight: 600;
+    }
+
+    .nav-btn.fwd:hover:not(:disabled) { opacity: .88; }
+
+    .progress-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .prog-step {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .prog-label {
+      font-size: .78rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding: 8px 16px;
+      border-radius: var(--r-pill);
+      border: 1px solid transparent;
+      transition: all var(--tr);
+    }
+
+    .prog-step.active .prog-label {
+      color: var(--teal);
+      border-color: rgba(94,207,191,.3);
+      background: rgba(94,207,191,.08);
+    }
+
+    .prog-dot {
+      width: 32px;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .story-accent { height: 4px; width: 100%; }
+
+    .story-header {
+      padding: 24px 28px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .story-day-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .story-day-badge, .story-day-num {
+      font-size: .68rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .story-day-num {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: var(--r-pill);
+    }
+
+    .story-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.5rem,3.5vw,1.9rem);
+      font-weight: 400;
+      font-style: italic;
+      line-height: 1.2;
+    }
+
+    .story-body {
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .sec-label {
+      font-size: .65rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .vignette {
+      font-size: .93rem;
+      line-height: 1.82;
+      color: var(--text-2);
+      font-weight: 300;
+    }
+
+    .tradeoff-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .t-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px 7px 10px;
+      border-radius: var(--r-pill);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+    }
+
+    .t-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .t-dot.low    { background: var(--low-col); box-shadow: 0 0 6px var(--low-col); }
+    .t-dot.medium { background: var(--med-col); box-shadow: 0 0 6px var(--med-col); }
+    .t-dot.high   { background: var(--high-col); box-shadow: 0 0 6px var(--high-col); }
+
+    .t-name, .t-lvl { font-size: .75rem; }
+    .t-name { color: var(--text-2); }
+    .t-lvl { font-weight: 600; }
+    .t-lvl.low { color: var(--low-col); }
+    .t-lvl.medium { color: var(--med-col); }
+    .t-lvl.high { color: var(--high-col); }
+
+    .micro-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .micro-item {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: background var(--tr), border-color var(--tr);
+    }
+
+    .micro-item:hover {
+      background: rgba(255,255,255,.07);
+      border-color: var(--border-b);
+    }
+
+    .micro-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .micro-title {
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .micro-time {
+      font-size: .72rem;
+      color: var(--teal);
+      background: rgba(94,207,191,.1);
+      border: 1px solid rgba(94,207,191,.2);
+      border-radius: var(--r-pill);
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+
+    .micro-desc {
+      font-size: .83rem;
+      color: var(--text-2);
+      line-height: 1.55;
+      font-weight: 300;
+    }
+
+    .reflection {
+      padding: 20px 28px 26px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .reflection-q {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--text-2);
+    }
+
+    .rating-row { display: flex; gap: 6px; }
+
+    .r-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: transparent;
+      font-family: 'Outfit', sans-serif;
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--text-3);
+      cursor: pointer;
+      transition: all var(--tr);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .r-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .r-btn.sel {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #0a0f16;
+      font-weight: 700;
+    }
+
+    .interpretation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .interp-pill {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: rgba(255,255,255,.04);
+      color: var(--text-2);
+      line-height: 1.5;
+      font-size: .9rem;
+    }
+
+    .interp-highlight {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .scene-wrap {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      box-shadow: inset 0 -30px 40px rgba(10,15,22,.7);
+    }
+
+    .scene-location {
+      position: absolute;
+      bottom: 14px;
+      left: 18px;
+      font-size: .7rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.55);
+      background: rgba(10,15,22,.45);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--r-pill);
+      padding: 4px 12px;
+      backdrop-filter: blur(6px);
+      z-index: 10;
+    }
+
+    .scene-time {
+      position: absolute;
+      bottom: 14px;
+      right: 18px;
+      font-size: .7rem;
+      letter-spacing: .1em;
+      color: rgba(255,255,255,.4);
+      z-index: 10;
+    }
+
+    .scene-morning {
+      background: linear-gradient(180deg, #1a2e45 0%, #2d4a6e 40%, #e8a87c 75%, #f4c89a 100%);
+    }
+
+    .sun {
+      position: absolute;
+      width: 60px;
+      height: 30px;
+      border-radius: 60px 60px 0 0;
+      background: radial-gradient(circle at 50% 100%, #fde68a, #f59e0b 50%, transparent 80%);
+      bottom: 55px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 40px 15px rgba(251,191,36,.35), 0 0 80px 30px rgba(251,191,36,.12);
+      animation: sunRise 4s ease-out both;
+    }
+
+    @keyframes sunRise {
+      from { bottom: 35px; opacity: .3; }
+      to { bottom: 55px; opacity: 1; }
+    }
+
+    .horizon-glow {
+      position: absolute;
+      width: 100%;
+      height: 50px;
+      bottom: 50px;
+      background: linear-gradient(180deg, transparent, rgba(248,177,100,.3), transparent);
+      filter: blur(8px);
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 55px;
+      background: linear-gradient(180deg, #1a1208, #0d0a05);
+    }
+
+    .window-frame {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 160px;
+      background: transparent;
+      border: 3px solid rgba(255,255,255,.08);
+      border-bottom: none;
+      border-radius: 70px 70px 0 0;
+    }
+
+    .window-frame::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(255,255,255,.08);
+    }
+
+    .window-frame::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: rgba(255,255,255,.08);
+    }
+
+    .bird {
+      position: absolute;
+      width: 14px;
+      height: 6px;
+      border-top: 2px solid rgba(255,255,255,.5);
+      border-radius: 50% 50% 0 0;
+      border-right: none;
+    }
+
+    .bird::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 7px;
+      height: 6px;
+      border-top: 2px solid rgba(255,255,255,.5);
+      border-radius: 50% 50% 0 0;
+      transform: rotateY(180deg);
+    }
+
+    .bird1 { top: 38px; left: 22%; animation: birdFly 12s linear infinite; }
+    .bird2 { top: 50px; left: 30%; animation: birdFly 12s 1.5s linear infinite; }
+    .bird3 { top: 32px; left: 18%; animation: birdFly 12s .7s linear infinite; }
+
+    @keyframes birdFly {
+      from { transform: translateX(0); }
+      to { transform: translateX(620px); }
+    }
+
+    .stars, .coast-stars { position: absolute; inset: 0; }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: white;
+      animation: starFade 4s ease-out both;
+    }
+
+    @keyframes starFade {
+      0% { opacity: .8; }
+      100% { opacity: 0; }
+    }
+
+    .coffee {
+      position: absolute;
+      bottom: 56px;
+      right: 22%;
+      width: 22px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.2);
+      border-radius: 0 0 6px 6px;
+    }
+
+    .coffee::before {
+      content: '';
+      position: absolute;
+      top: -16px;
+      left: 4px;
+      width: 2px;
+      height: 14px;
+      background: rgba(255,255,255,.15);
+      border-radius: 99px;
+      animation: steam 2s ease-in-out infinite;
+    }
+
+    .coffee::after {
+      content: '';
+      position: absolute;
+      right: -8px;
+      top: 2px;
+      width: 8px;
+      height: 10px;
+      border: 2px solid rgba(255,255,255,.2);
+      border-left: none;
+      border-radius: 0 4px 4px 0;
+    }
+
+    @keyframes steam {
+      0%,100% { transform: translateY(0) scaleX(1); opacity: .5; }
+      50% { transform: translateY(-6px) scaleX(1.4); opacity: .15; }
+    }
+
+    .scene-cafe {
+      background: linear-gradient(180deg, #120d08 0%, #1e1208 35%, #2a1a08 70%, #1a1005 100%);
+    }
+
+    .pendant { position: absolute; }
+    .pendant-cord { width: 1px; background: rgba(255,255,255,.15); margin: 0 auto; }
+
+    .pendant-bulb {
+      width: 24px;
+      height: 28px;
+      border-radius: 50% 50% 40% 40%;
+      background: radial-gradient(ellipse at 40% 40%, #fff9c4, #f59e0b 50%, #92400e);
+      margin: 0 auto;
+      box-shadow: 0 0 18px 8px rgba(245,158,11,.4), 0 0 50px 20px rgba(245,158,11,.15);
+      animation: bulbFlicker 8s ease-in-out infinite;
+    }
+
+    @keyframes bulbFlicker {
+      0%,100% { box-shadow: 0 0 18px 8px rgba(245,158,11,.4), 0 0 50px 20px rgba(245,158,11,.15); }
+      50% { box-shadow: 0 0 22px 10px rgba(245,158,11,.5), 0 0 60px 25px rgba(245,158,11,.18); }
+    }
+
+    .p1 { left: 18%; top: 0; }
+    .p2 { left: 50%; transform: translateX(-50%); top: 0; }
+    .p3 { right: 18%; top: 0; }
+
+    .cafe-table {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+    }
+
+    .table-top {
+      height: 8px;
+      background: #3d2a0f;
+      border-radius: 4px 4px 0 0;
+      box-shadow: 0 -2px 12px rgba(245,158,11,.12);
+    }
+
+    .table-leg {
+      width: 6px;
+      height: 50px;
+      background: #2a1a08;
+      margin: 0 auto;
+    }
+
+    .cafe-cup {
+      position: absolute;
+      bottom: 58px;
+      left: 50%;
+      transform: translateX(-28px);
+      width: 18px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,.25);
+      border-radius: 0 0 5px 5px;
+    }
+
+    .cafe-cup::before {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: -5px;
+      right: -5px;
+      height: 4px;
+      background: rgba(255,255,255,.15);
+      border-radius: 99px;
+    }
+
+    .cafe-cup::after {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 3px;
+      width: 2px;
+      height: 10px;
+      background: rgba(255,255,255,.12);
+      border-radius: 99px;
+      animation: steam 2.5s .5s ease-in-out infinite;
+    }
+
+    .person { position: absolute; bottom: 55px; }
+    .p-head { border-radius: 50%; background: rgba(255,255,255,.12); margin: 0 auto; }
+    .p-body { background: rgba(255,255,255,.08); border-radius: 4px 4px 0 0; margin: 2px auto 0; }
+
+    .person1 { left: 22%; }
+    .person1 .p-head { width: 20px; height: 20px; }
+    .person1 .p-body { width: 28px; height: 36px; }
+
+    .person2 { right: 22%; }
+    .person2 .p-head { width: 18px; height: 18px; }
+    .person2 .p-body { width: 26px; height: 32px; }
+
+    .floor-glow {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 60px;
+      background: linear-gradient(180deg, transparent, rgba(245,158,11,.06));
+    }
+
+    .scene-coast {
+      background: linear-gradient(180deg, #0f2035 0%, #1a3550 25%, #1e4060 50%, #0d2535 75%, #0a1a25 100%);
+    }
+
+    .moon {
+      position: absolute;
+      top: 20px;
+      right: 15%;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fffde7, #fde68a 60%, #d4a96a);
+      box-shadow: 0 0 25px 8px rgba(212,169,106,.25), 0 0 60px 20px rgba(212,169,106,.08);
+      animation: moonGlow 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes moonGlow {
+      from { box-shadow: 0 0 25px 8px rgba(212,169,106,.25); }
+      to { box-shadow: 0 0 35px 14px rgba(212,169,106,.35), 0 0 80px 30px rgba(212,169,106,.12); }
+    }
+
+    .moon-reflect {
+      position: absolute;
+      bottom: 35px;
+      right: calc(15% + 1px);
+      width: 5px;
+      height: 60px;
+      background: linear-gradient(180deg, rgba(212,169,106,.5), transparent);
+      border-radius: 99px;
+      filter: blur(3px);
+      animation: reflectWaver 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes reflectWaver {
+      from { transform: scaleX(1); opacity: .6; }
+      to { transform: scaleX(2.5); opacity: .3; }
+    }
+
+    .sea {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 70px;
+      background: linear-gradient(180deg, #0d2535, #081520);
+      overflow: hidden;
+    }
+
+    .wave {
+      position: absolute;
+      width: 200%;
+      height: 20px;
+      border-radius: 50%;
+      opacity: .35;
+    }
+
+    .wave1 {
+      top: 10px;
+      left: -50%;
+      background: linear-gradient(90deg, transparent 0%, rgba(94,207,191,.4) 50%, transparent 100%);
+      animation: waveMove 7s linear infinite;
+    }
+
+    .wave2 {
+      top: 22px;
+      left: -50%;
+      background: linear-gradient(90deg, transparent 0%, rgba(94,207,191,.25) 50%, transparent 100%);
+      animation: waveMove 9s 2s linear infinite reverse;
+    }
+
+    .wave3 {
+      top: 35px;
+      left: -50%;
+      background: linear-gradient(90deg, transparent 0%, rgba(94,207,191,.15) 50%, transparent 100%);
+      animation: waveMove 11s 1s linear infinite;
+    }
+
+    @keyframes waveMove {
+      from { transform: translateX(0); }
+      to { transform: translateX(50%); }
+    }
+
+    .cliff {
+      position: absolute;
+      bottom: 65px;
+      left: 0;
+      width: 120px;
+      height: 80px;
+      background: #0a1018;
+      clip-path: polygon(0 100%, 0 40%, 30% 15%, 60% 30%, 85% 10%, 100% 25%, 100% 100%);
+    }
+
+    .figure {
+      position: absolute;
+      bottom: 128px;
+      left: 72px;
+    }
+
+    .fig-head {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.18);
+    }
+
+    .fig-body {
+      width: 14px;
+      height: 12px;
+      background: rgba(255,255,255,.1);
+      border-radius: 3px;
+      margin-top: 1px;
+      transform: rotate(-5deg);
+    }
+
+    .shooting-star {
+      position: absolute;
+      top: 30px;
+      left: -40px;
+      width: 40px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.8));
+      border-radius: 99px;
+      animation: shoot 8s 3s ease-out infinite;
+      transform: rotate(-20deg);
+    }
+
+    @keyframes shoot {
+      0%   { left: -40px; top: 30px; opacity: 0; }
+      5%   { opacity: 1; }
+      20%  { left: 60%; top: 60px; opacity: 0; }
+      100% { left: 60%; top: 60px; opacity: 0; }
+    }
+
+    @keyframes cardInRight {
+      from { opacity:0; transform: translateX(40px) scale(.97); }
+      to { opacity:1; transform: translateX(0) scale(1); }
+    }
+
+    @keyframes cardInLeft {
+      from { opacity:0; transform: translateX(-40px) scale(.97); }
+      to { opacity:1; transform: translateX(0) scale(1); }
+    }
+
+    .anim-right { animation: cardInRight .4s cubic-bezier(.4,0,.2,1) both; }
+    .anim-left  { animation: cardInLeft .4s cubic-bezier(.4,0,.2,1) both; }
+
+    @media (max-width: 500px) {
+      .navbar { padding: 18px 20px; }
+      .glass  { padding: 22px 18px; }
+      .story-header, .story-body, .reflection { padding-left: 20px; padding-right: 20px; }
+      .slider-row { grid-template-columns: 64px 1fr 64px; }
+      .scene-wrap { height: 160px; }
+    }
+
+    .full-card-shell {
+        min-height: 70vh;
+        display: flex;
+        align-items: stretch;
+}
+
+.tarot-card {
+  width: 100%;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="navbar">
+      <div class="logo">A<em>lt</em>er</div>
+      <div class="nav-tag">Prototype · UX Concept</div>
+    </nav>
+
+    <div class="page active" id="page-input">
+      <div class="intro">
+        <p class="eyebrow">Future Snapshot Simulator</p>
+        <h1>What does the <em>altered</em> life actually feel like?</h1>
+        <p>Answer a few questions and ALTER will interpret your signals before simulating three future snapshots.</p>
+      </div>
+
+      <div class="glass">
+        <div class="field">
+          <label for="life-change">The change you're considering</label>
+          <input type="text" id="life-change" placeholder="e.g. Moving to Australia on a working holiday visa" />
+        </div>
+
+        <hr class="fdivider" />
+
+        <div class="field">
+          <label for="want-more">What do you want more of?</label>
+          <input type="text" id="want-more" placeholder="e.g. Adventure, freedom, new experiences" />
+        </div>
+
+        <div class="field">
+          <label for="want-less">What do you want less of?</label>
+          <input type="text" id="want-less" placeholder="e.g. Routine, pressure, commuting" />
+        </div>
+
+        <div class="field">
+          <label for="afraid-losing">What are you afraid of losing?</label>
+          <input type="text" id="afraid-losing" placeholder="e.g. Close friendships, career momentum" />
+        </div>
+
+        <div class="field">
+          <label for="craving">What are you craving right now?</label>
+          <input type="text" id="craving" placeholder="e.g. A sense of aliveness, belonging somewhere new" />
+        </div>
+
+        <hr class="fdivider" />
+
+        <div>
+          <p class="sub-label" style="margin-bottom:16px;">Your tendencies</p>
+          <div class="slider-group">
+            <div class="slider-row">
+              <span class="sl-l">Stability</span>
+              <input type="range" id="sl-stab" min="1" max="5" value="3" />
+              <span class="sl-r">Freedom</span>
+            </div>
+
+            <div class="slider-row">
+              <span class="sl-l">Mastery</span>
+              <input type="range" id="sl-mast" min="1" max="5" value="3" />
+              <span class="sl-r">Exploration</span>
+            </div>
+
+            <div class="slider-row">
+              <span class="sl-l">Social</span>
+              <input type="range" id="sl-soc" min="1" max="5" value="3" />
+              <span class="sl-r">Solitary</span>
+            </div>
+          </div>
+        </div>
+
+        <hr class="fdivider" />
+
+        <div>
+          <p class="sub-label" style="margin-bottom:12px;">Choose two values that matter most</p>
+          <div class="chip-grid" id="val-chips">
+            <div class="val-chip" data-val="Creativity">Creativity</div>
+            <div class="val-chip" data-val="Security">Security</div>
+            <div class="val-chip" data-val="Recognition">Recognition</div>
+            <div class="val-chip" data-val="Calm">Calm</div>
+            <div class="val-chip" data-val="Community">Community</div>
+            <div class="val-chip" data-val="Independence">Independence</div>
+          </div>
+          <p class="chip-meta" id="chip-meta">Select exactly 2</p>
+        </div>
+      </div>
+
+      <p class="error-msg" id="form-error"></p>
+      <button class="btn-cta" id="gen-btn">Interpret my signals →</button>
+    </div>
+
+    <div class="page" id="page-interpretation">
+      <button class="back-btn" id="interp-back-btn">← Back</button>
+
+      <div>
+        <p class="eyebrow" style="text-align:left;margin-bottom:8px;">Interpretation</p>
+        <div class="sim-title">ALTER reads your signals as:</div>
+      </div>
+
+      <div class="glass">
+        <p id="interp-summary" class="vignette"></p>
+
+        <hr class="fdivider" />
+
+        <div>
+          <p class="sub-label" style="margin-bottom:12px;">This simulation emphasizes</p>
+          <div class="interpretation-list" id="interp-emphasis"></div>
+        </div>
+      </div>
+
+      <button class="btn-cta" id="interp-continue-btn">Simulate the first snapshot →</button>
+    </div>
+
+<div class="page" id="page-commitment">
+  <button class="back-btn" id="commitment-back-btn">← Back to cards</button>
+
+  <div>
+    <p class="eyebrow" style="text-align:left;margin-bottom:8px;">Micro-commitment</p>
+    <div class="sim-title">Choose one small action to test next</div>
+  </div>
+
+  <div class="glass">
+    <p class="vignette" style="margin-bottom:4px;">
+      Instead of deciding your whole future today, choose one small action that helps you test this path in real life.
+    </p>
+
+    <div class="micro-list" id="commitment-options"></div>
+  </div>
+</div>
+
+  <div>
+    <p class="eyebrow" style="text-align:left;margin-bottom:8px;">Simulated future</p>
+    <div class="sim-title" id="sim-title">Drawn cards for: <em>your change</em></div>
+  </div>
+
+  <div class="progress-bar" id="progress-bar">
+    <div class="prog-step active" data-i="0"><span class="prog-label">Card 1</span></div>
+    <div class="prog-dot"></div>
+    <div class="prog-step" data-i="1"><span class="prog-label">Card 2</span></div>
+    <div class="prog-dot"></div>
+    <div class="prog-step" data-i="2"><span class="prog-label">Card 3</span></div>
+  </div>
+
+  <div class="full-card-shell">
+    <div class="story-card tarot-card" id="story-card"></div>
+  </div>
+
+  <div class="card-nav">
+    <button class="nav-btn" id="prev-btn" disabled>← Previous card</button>
+    <button class="nav-btn fwd" id="next-btn">Next card →</button>
+  </div>
+</div>
+
+
+  <template id="scene-morning">
+    <div class="scene-wrap scene-morning">
+      <div class="stars">
+        <div class="star" style="top:12%;left:10%;animation-delay:.2s"></div>
+        <div class="star" style="top:8%;left:25%;animation-delay:.5s"></div>
+        <div class="star" style="top:18%;left:40%;animation-delay:.1s"></div>
+        <div class="star" style="top:6%;left:55%;animation-delay:.8s"></div>
+        <div class="star" style="top:14%;left:70%;animation-delay:.3s"></div>
+        <div class="star" style="top:9%;left:82%;animation-delay:.6s"></div>
+        <div class="star" style="top:22%;left:88%;animation-delay:.4s"></div>
+      </div>
+      <div class="horizon-glow"></div>
+      <div class="sun"></div>
+      <div class="window-frame"></div>
+      <div class="ground"></div>
+      <div class="coffee"></div>
+      <div class="bird bird1"></div>
+      <div class="bird bird2"></div>
+      <div class="bird bird3"></div>
+      <div class="scene-location">— Location —</div>
+      <div class="scene-time">7:04 AM</div>
+    </div>
+  </template>
+
+  <template id="scene-cafe">
+    <div class="scene-wrap scene-cafe">
+      <div class="pendant p1"><div class="pendant-cord" style="height:40px"></div><div class="pendant-bulb"></div></div>
+      <div class="pendant p2"><div class="pendant-cord" style="height:62px"></div><div class="pendant-bulb"></div></div>
+      <div class="pendant p3"><div class="pendant-cord" style="height:34px"></div><div class="pendant-bulb"></div></div>
+      <div class="floor-glow"></div>
+      <div class="cafe-table">
+        <div class="table-top"></div>
+        <div class="table-leg"></div>
+      </div>
+      <div class="cafe-cup"></div>
+      <div class="person person1">
+        <div class="p-head"></div>
+        <div class="p-body"></div>
+      </div>
+      <div class="person person2">
+        <div class="p-head"></div>
+        <div class="p-body"></div>
+      </div>
+      <div class="scene-location">— Location —</div>
+      <div class="scene-time">7:40 PM</div>
+    </div>
+  </template>
+
+  <template id="scene-coast">
+    <div class="scene-wrap scene-coast">
+      <div class="coast-stars">
+        <div class="star" style="top:10%;left:8%;width:3px;height:3px;animation:none;opacity:.7"></div>
+        <div class="star" style="top:5%;left:20%;animation:none;opacity:.5"></div>
+        <div class="star" style="top:15%;left:35%;animation:none;opacity:.6"></div>
+        <div class="star" style="top:7%;left:50%;animation:none;opacity:.4"></div>
+        <div class="star" style="top:12%;left:62%;animation:none;opacity:.7"></div>
+        <div class="star" style="top:4%;left:75%;animation:none;opacity:.5"></div>
+        <div class="star" style="top:18%;left:88%;animation:none;opacity:.6"></div>
+        <div class="star" style="top:20%;left:44%;animation:none;opacity:.3"></div>
+      </div>
+      <div class="shooting-star"></div>
+      <div class="moon"></div>
+      <div class="moon-reflect"></div>
+      <div class="sea">
+        <div class="wave wave1"></div>
+        <div class="wave wave2"></div>
+        <div class="wave wave3"></div>
+      </div>
+      <div class="cliff"></div>
+      <div class="figure">
+        <div class="fig-head"></div>
+        <div class="fig-body"></div>
+      </div>
+      <div class="scene-location">— Location —</div>
+      <div class="scene-time">10:22 PM</div>
+    </div>
+  </template>
+
+  <script>
+    const pageInput = document.getElementById('page-input');
+    const pageInterpretation = document.getElementById('page-interpretation');
+    const pageSim = document.getElementById('page-sim');
+    const pageCommitment = document.getElementById('page-commitment');
+    const commitmentBackBtn = document.getElementById('commitment-back-btn');
+    const commitmentOptions = document.getElementById('commitment-options');
+
+    const genBtn = document.getElementById('gen-btn');
+    const interpBackBtn = document.getElementById('interp-back-btn');
+    const interpContinueBtn = document.getElementById('interp-continue-btn');
+    const backBtn = document.getElementById('back-btn');
+
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const storyCard = document.getElementById('story-card');
+    const formError = document.getElementById('form-error');
+    const chipMeta = document.getElementById('chip-meta');
+    const simTitle = document.getElementById('sim-title');
+    const progSteps = document.querySelectorAll('.prog-step');
+    const interpSummary = document.getElementById('interp-summary');
+    const interpEmphasis = document.getElementById('interp-emphasis');
+
+    let currentIdx = 0;
+    let cards = [];
+    let ratings = [null, null, null];
+    let chosenVals = [];
+    let locationLabel = '— Location —';
+    let allMicroCommitments = [];
+    let selectedCommitment = null;
+
+    const SCENE_TEMPLATES = ['scene-morning', 'scene-cafe', 'scene-coast'];
+    const ACCENTS = [
+      'linear-gradient(90deg,#5ecfbf,#3a9e90)',
+      'linear-gradient(90deg,#d4a96a,#b8843a)',
+      'linear-gradient(90deg,#e8927c,#c4604a)',
+    ];
+
+    document.querySelectorAll('.val-chip').forEach(el => {
+      el.addEventListener('click', () => {
+        const v = el.dataset.val;
+
+        if (el.classList.contains('active')) {
+          el.classList.remove('active');
+          chosenVals = chosenVals.filter(x => x !== v);
+        } else {
+          if (chosenVals.length >= 2) return;
+          el.classList.add('active');
+          chosenVals.push(v);
+        }
+
+        const rem = 2 - chosenVals.length;
+        chipMeta.textContent = rem === 0 ? '✓ Perfect' : `Select ${rem} more`;
+      });
+    });
+
+    function readForm() {
+      return {
+        change: document.getElementById('life-change').value.trim(),
+        more: document.getElementById('want-more').value.trim(),
+        less: document.getElementById('want-less').value.trim(),
+        afraid: document.getElementById('afraid-losing').value.trim(),
+        craving: document.getElementById('craving').value.trim(),
+        stability: +document.getElementById('sl-stab').value,
+        mastery: +document.getElementById('sl-mast').value,
+        social: +document.getElementById('sl-soc').value,
+        values: [...chosenVals],
+      };
+    }
+
+    function validate(f) {
+      if (!f.change) return "Please describe the life change you're considering.";
+      if (!f.more) return 'Please fill in what you want more of.';
+      if (!f.less) return 'Please fill in what you want less of.';
+      if (!f.afraid) return "Please fill in what you're afraid of losing.";
+      if (!f.craving) return "Please fill in what you're craving.";
+      if (f.values.length !== 2) return 'Please choose exactly 2 values.';
+      return null;
+    }
+
+    function lvl(n) {
+      return n <= 2 ? 'Low' : n === 3 ? 'Medium' : 'High';
+    }
+
+    function extractLocation(change) {
+      const patterns = [
+        /\bto\s+([A-Z][a-zA-Z\s]{2,20})/,
+        /\bin\s+([A-Z][a-zA-Z\s]{2,20})/,
+        /\bfrom\s+([A-Z][a-zA-Z\s]{2,20})/,
+      ];
+
+      for (const p of patterns) {
+        const m = change.match(p);
+        if (m) return m[1].trim().split(/\s+/).slice(0,2).join(' ');
+      }
+      return 'The new place';
+    }
+
+    function buildInterpretation(f) {
+      const stabilityText = f.stability >= 4
+        ? 'You still want a meaningful sense of stability, even inside change.'
+        : f.stability <= 2
+        ? 'You are strongly pulled toward freedom, movement, and less fixed structure.'
+        : 'You seem to want a balance between freedom and stability.';
+
+      const masteryText = f.mastery >= 4
+        ? 'You are leaning toward exploration, reinvention, and novelty.'
+        : f.mastery <= 2
+        ? 'You seem to value mastery, competence, and feeling grounded in what you know.'
+        : 'You appear open to both competence and experimentation.';
+
+      const socialText = f.social <= 2
+        ? 'Connection and belonging seem important in how this future will feel.'
+        : f.social >= 4
+        ? 'You may need more solitude and independence than others might expect.'
+        : 'Your ideal future likely includes both intimacy and space.';
+
+      const emphasis = [
+        f.stability <= 2 ? 'Exploratory environments and looser structure' : 'How stability is rebuilt after change',
+        f.social <= 2 ? 'Belonging, social integration, and new relationships' : 'Personal space, autonomy, and inner adjustment',
+        `Trade-offs around ${f.afraid.toLowerCase()} and your need for ${f.values[0].toLowerCase()} / ${f.values[1].toLowerCase()}`,
+      ];
+
+      const summary = `${stabilityText} ${masteryText} ${socialText} Right now, your answers suggest that this decision is not only about logistics — it is about identity, emotional texture, and whether this future can hold what matters most to you.`;
+
+      return { summary, emphasis };
+    }
+
+    function buildCards(f) {
+      const v1 = f.values[0];
+      const v2 = f.values[1];
+      const inv = n => 6 - n;
+
+      return [
+        {
+          day: 'Day 1',
+          title: 'Routine & Environment',
+          accent: ACCENTS[0],
+          vignette: `The alarm sounds at 7 a.m., but this is not the room you have slept in for years. Three weeks into ${f.change}, mornings carry a quality of weightlessness — equal parts wonder and mild vertigo. You make coffee in a kitchen shared with strangers who are beginning, slowly, to feel familiar. The light outside is different. Even the air has a different texture to it. You had wanted ${f.more.toLowerCase()}, and here it arrives in careful doses: a little more each morning. The habit of ${f.less.toLowerCase()} still exists at the edges, but the noticing itself feels like something.`,
+          tradeoffs: [
+            { name: 'Stability', lvl: lvl(f.stability <= 3 ? 4 : 2) },
+            { name: 'Creative Agency', lvl: lvl(f.mastery) },
+            { name: 'Social Energy', lvl: lvl(inv(f.social)) },
+          ],
+          micros: [
+            { title: 'Morning anchor ritual', desc: 'Choose one consistent act — coffee, journaling, or a 10-minute walk — that belongs only to you. Repeat every morning this week.', time: '15 min/day' },
+            { title: 'Slow exploration walk', desc: 'Go somewhere unfamiliar without a destination. Let yourself be slow and curious.', time: '45 min' },
+            { title: `${v1} check-in`, desc: `Write one sentence: how is this environment feeding — or starving — your need for ${v1.toLowerCase()}?`, time: '10 min' },
+          ],
+        },
+        {
+          day: 'Day 2',
+          title: 'Social Identity & Signals',
+          accent: ACCENTS[1],
+          vignette: `Someone at dinner asks what you do. The answer you give is different from the one you would have offered six months ago — not dishonest, just incomplete in a different direction. ${f.change} has stripped away the usual shorthand: the job title, the neighbourhood, the familiar cast of people who already knew you. You are becoming someone who chose this. That identity is interesting, even exciting — but it carries a cost. You feel the absence of ${f.afraid.toLowerCase()} most sharply in rooms full of strangers. The friendships here are warm and provisional.`,
+          tradeoffs: [
+            { name: 'Stability', lvl: lvl(f.stability >= 3 ? 2 : 4) },
+            { name: 'Creative Agency', lvl: lvl(inv(f.mastery)) },
+            { name: 'Social Energy', lvl: lvl(f.social <= 2 ? 4 : 2) },
+          ],
+          micros: [
+            { title: 'One honest introduction', desc: 'Next time you meet someone, introduce yourself with something true but unexpected — beyond job and hometown.', time: '5 min' },
+            { title: 'Book a back-home call', desc: 'Schedule a proper call this week with someone who knew you before this chapter.', time: '1 hr this week' },
+            { title: `Name your ${v2} need`, desc: `Tell one new person what you genuinely value. Notice how it feels to be honest early.`, time: '10 min' },
+          ],
+        },
+        {
+          day: 'Day 3',
+          title: 'Meaning & Tension',
+          accent: ACCENTS[2],
+          vignette: `There are days when ${f.change} feels like the clearest decision you have ever made. This is one of the other days. Not bad — just honest. What you were craving — ${f.craving.toLowerCase()} — has not arrived all at once. It comes in flickers: a conversation that runs long, an afternoon where everything briefly clicks, a landscape that makes you feel radically awake. Then there are stretches that feel like waiting. You had wanted less ${f.less.toLowerCase()}, and mostly you have it — but you have inherited new frictions you did not anticipate. This is not failure. It is the actual texture of the life you chose.`,
+          tradeoffs: [
+            { name: 'Stability', lvl: lvl(3) },
+            { name: 'Creative Agency', lvl: lvl(f.mastery >= 3 ? 4 : 2) },
+            { name: 'Social Energy', lvl: lvl(3) },
+          ],
+          micros: [
+            { title: 'Tension audit', desc: "Write down the one friction you didn't anticipate. Is it a dealbreaker, or a growing edge?", time: '20 min' },
+            { title: 'Find a micro-version of your craving', desc: `Identify the smallest possible version of "${f.craving}" you could access this week. Do that.`, time: '30 min' },
+            { title: 'Write the both/and', desc: `Complete: "I can want ${f.more.toLowerCase()} AND still grieve ${f.afraid.toLowerCase()}." Read it back aloud.`, time: '5 min' },
+          ],
+        }
+      ];
+    }
+
+    function renderInterpretation(f) {
+      const interpretation = buildInterpretation(f);
+      interpSummary.textContent = interpretation.summary;
+      interpEmphasis.innerHTML = interpretation.emphasis
+        .map(item => `<div class="interp-pill"><span class="interp-highlight">•</span> ${item}</div>`)
+        .join('');
+    }
+
+    function renderCommitmentScreen() {
+  commitmentOptions.innerHTML = allMicroCommitments.map((m, i) => `
+    <button class="micro-item" data-commitment-index="${i}" style="text-align:left; cursor:pointer;">
+      <div class="micro-top">
+        <span class="micro-title">${m.title}</span>
+        <span class="micro-time">${m.time}</span>
+      </div>
+      <p class="micro-desc">${m.desc}</p>
+    </button>
+  `).join('');
+
+  commitmentOptions.querySelectorAll('[data-commitment-index]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedCommitment = allMicroCommitments[+btn.dataset.commitmentIndex];
+      alert(`Selected: ${selectedCommitment.title}`);
+    });
+  });
+}
+
+    commitmentBackBtn.addEventListener('click', () => {
+        pageCommitment.classList.remove('active');
+        pageSim.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    function renderCard(idx, direction, locationLabel) {
+      const c = cards[idx];
+      const saved = ratings[idx];
+
+      const pillsHTML = c.tradeoffs.map(t => `
+        <div class="t-pill">
+          <span class="t-dot ${t.lvl.toLowerCase()}"></span>
+          <span class="t-name">${t.name}</span>
+          <span class="t-lvl ${t.lvl.toLowerCase()}">${t.lvl}</span>
+        </div>
+      `).join('');
+
+      const microsHTML = c.micros.map(m => `
+        <div class="micro-item">
+          <div class="micro-top">
+            <span class="micro-title">${m.title}</span>
+            <span class="micro-time">${m.time}</span>
+          </div>
+          <p class="micro-desc">${m.desc}</p>
+        </div>
+      `).join('');
+
+      const ratingsHTML = [1,2,3,4,5].map(n => `
+        <button class="r-btn ${saved===n?'sel':''}" data-r="${n}">${n}</button>
+      `).join('');
+
+      storyCard.innerHTML = `
+        <div class="story-accent" style="background:${c.accent}"></div>
+        <div id="scene-slot"></div>
+        <div class="story-header">
+          <div class="story-day-row">
+            <span class="story-day-badge">Simulated snapshot</span>
+            <span class="story-day-num">${c.day}</span>
+          </div>
+          <h2 class="story-title">${c.title}</h2>
+        </div>
+        <div class="story-body">
+          <p class="vignette">${c.vignette}</p>
+          <div>
+            <p class="sec-label">Tradeoffs in this snapshot</p>
+            <div class="tradeoff-pills">${pillsHTML}</div>
+          </div>
+          <div>
+            <p class="sec-label">Micro-commitments to try</p>
+            <div class="micro-list">${microsHTML}</div>
+          </div>
+        </div>
+        <div class="reflection">
+          <p class="reflection-q">Did this version feel aligned?</p>
+          <div class="rating-row">${ratingsHTML}</div>
+        </div>
+      `;
+
+      const tpl = document.getElementById(SCENE_TEMPLATES[idx]);
+      const clone = tpl.content.cloneNode(true);
+      const locEl = clone.querySelector('.scene-location');
+      if (locEl) locEl.textContent = locationLabel;
+      document.getElementById('scene-slot').replaceWith(clone);
+
+      storyCard.querySelectorAll('.r-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const r = +btn.dataset.r;
+          ratings[idx] = r;
+          storyCard.querySelectorAll('.r-btn').forEach(b =>
+            b.classList.toggle('sel', +b.dataset.r === r)
+          );
+        });
+      });
+
+      storyCard.classList.remove('anim-right','anim-left');
+      void storyCard.offsetWidth;
+      if (direction) storyCard.classList.add(direction === 'right' ? 'anim-right' : 'anim-left');
+
+      prevBtn.disabled = idx === 0;
+      nextBtn.textContent = idx === 2 ? 'Complete ✓' : 'Next day →';
+      progSteps.forEach((s,i) => s.classList.toggle('active', i === idx));
+    }
+
+    progSteps.forEach(step => {
+      step.addEventListener('click', () => {
+        const target = +step.dataset.i;
+        if (target === currentIdx) return;
+        const dir = target > currentIdx ? 'right' : 'left';
+        currentIdx = target;
+        renderCard(currentIdx, dir, locationLabel);
+      });
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentIdx > 0) {
+        currentIdx--;
+        renderCard(currentIdx, 'left', locationLabel);
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentIdx < 2) {
+            currentIdx++;
+            renderCard(currentIdx, 'right', locationLabel);
+        } else {
+            pageSim.classList.remove('active');
+            pageCommitment.classList.add('active');
+            renderCommitmentScreen();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    genBtn.addEventListener('click', () => {
+      const f = readForm();
+      const err = validate(f);
+
+      if (err) {
+        formError.textContent = err;
+        formError.style.display = 'block';
+        return;
+      }
+
+      formError.style.display = 'none';
+      cards = buildCards(f);
+      allMicroCommitments = cards.flatMap(card => card.micros);
+        selectedCommitment = null;
+      currentIdx = 0;
+      ratings = [null, null, null];
+      locationLabel = extractLocation(f.change);
+
+      const short = f.change.split(' ').slice(0,6).join(' ') + (f.change.split(' ').length > 6 ? '…' : '');
+      simTitle.innerHTML = `Three days inside: <em>${short}</em>`;
+
+      renderInterpretation(f);
+
+      pageInput.classList.remove('active');
+      pageInterpretation.classList.add('active');
+      pageSim.classList.remove('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    interpBackBtn.addEventListener('click', () => {
+      pageInterpretation.classList.remove('active');
+      pageInput.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    interpContinueBtn.addEventListener('click', () => {
+      pageInterpretation.classList.remove('active');
+      pageSim.classList.add('active');
+      renderCard(0, 'right', locationLabel);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    backBtn.addEventListener('click', () => {
+      pageSim.classList.remove('active');
+      pageInput.classList.add('active');
+      pageInterpretation.classList.remove('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
