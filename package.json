@@ -1,5 +1,9 @@
 {
+  "name": "alter-prototype",
+  "scripts": {
+    "start": "serve . -l tcp://0.0.0.0:$PORT"
+  },
   "dependencies": {
-    "@anthropic-ai/claude-code": "^2.1.76"
+    "serve": "^14.2.6"
   }
 }
