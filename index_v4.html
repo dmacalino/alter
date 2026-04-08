@@ -1167,41 +1167,73 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
 
 <script>
-/* ============================================================
-   ALTER v6 — Ritual Card Reading Prototype
-   Added: trajectory memory
-   Flow:
-   input → interp → cards (×3) → commitment → confirm → next-day bias
-   ============================================================ */
-
-// ── STATE ────────────────────────────────────────────────────
-let vals         = [];
-let cardIdx      = 0;
-let cardFlipped  = false;
-let ratings      = [null, null, null];
+let vals = [];
+let cardIdx = 0;
+let cardFlipped = false;
+let ratings = [null, null, null];
 let chosenCommit = null;
-let cards        = [];
-let commits      = [];
+let cards = [];
+let commits = [];
 
-// New: stores how today's chosen action biases tomorrow's reading
 let trajectoryState = {
   sourceCommit: null,
   effectLabel: '',
   effectText: '',
-  sliderDelta: {
-    stab: 0,   // + = toward freedom, - = toward stability
-    mast: 0,   // + = toward exploration, - = toward mastery
-    soc: 0     // + = toward solitary, - = toward social
-  },
+  sliderDelta: { stab: 0, mast: 0, soc: 0 },
   emphasisAdd: [],
 };
 
-// ── NAVIGATION ───────────────────────────────────────────────
+const SCENE_TPLS = ['tpl-scene-dawn', 'tpl-scene-cafe', 'tpl-scene-coast'];
+const ACCENTS = [
+  'linear-gradient(90deg,#c9a96e,#e8b87a)',
+  'linear-gradient(90deg,#c9a96e,#b87060)',
+  'linear-gradient(90deg,#5e9e95,#3e7e78)',
+];
+const FRONT_TITLES = [
+  'Morning in the new place',
+  'An evening among strangers',
+  'Sitting with the cost of it',
+];
+const INV_ROMAN = ['I', 'II', 'III'];
+
+const fv = (id) => document.getElementById(id).value.trim();
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+function titleCase(str) {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function fallbackReport(reason = 'Unknown error') {
+  console.error('Fallback report triggered:', reason);
+  return {
+    report_1: {
+      title: 'Day 1 — Daily Life',
+      finding: `The report could not be generated. Reason: ${reason}.`,
+      signal: 'Signal unclear',
+    },
+    report_2: {
+      title: 'Day 2 — Social World',
+      finding: `The report could not be generated. Reason: ${reason}.`,
+      signal: 'Signal unclear',
+    },
+    report_3: {
+      title: 'Day 3 — The Cost',
+      finding: `The report could not be generated. Reason: ${reason}.`,
+      signal: 'Signal unclear',
+    },
+    agent_recommendation: 'Try the simulation again after fixing the error.',
+  };
+}
+
 function goTo(id) {
   const all = document.querySelectorAll('.page');
   const target = document.getElementById(id);
 
-  all.forEach(p => {
+  all.forEach((p) => {
     if (p.classList.contains('active')) {
       p.style.opacity = '0';
       p.style.transform = 'translateY(-14px)';
@@ -1223,13 +1255,12 @@ function goTo(id) {
   }, 380);
 }
 
-// ── VALUE CHIPS ──────────────────────────────────────────────
-document.querySelectorAll('.vchip').forEach(el => {
+document.querySelectorAll('.vchip').forEach((el) => {
   el.addEventListener('click', () => {
     const v = el.dataset.v;
     if (el.classList.contains('on')) {
       el.classList.remove('on');
-      vals = vals.filter(x => x !== v);
+      vals = vals.filter((x) => x !== v);
     } else {
       if (vals.length >= 2) return;
       el.classList.add('on');
@@ -1240,37 +1271,6 @@ document.querySelectorAll('.vchip').forEach(el => {
   });
 });
 
-// ── HELPERS ──────────────────────────────────────────────────
-const fv = id => document.getElementById(id).value.trim();
-const lvl = n => n <= 2 ? 'Low' : n === 3 ? 'Medium' : 'High';
-const inv = n => 6 - n;
-const INV_ROMAN = ['I', 'II', 'III'];
-
-function clamp(val, min, max) {
-  return Math.max(min, Math.min(max, val));
-}
-
-function titleCase(str) {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-// ── SCENE TEMPLATE MAP ───────────────────────────────────────
-const SCENE_TPLS = ['tpl-scene-dawn', 'tpl-scene-cafe', 'tpl-scene-coast'];
-
-const ACCENTS = [
-  'linear-gradient(90deg,#c9a96e,#e8b87a)',
-  'linear-gradient(90deg,#c9a96e,#b87060)',
-  'linear-gradient(90deg,#5e9e95,#3e7e78)',
-];
-
-const FRONT_TITLES = [
-  'Morning in the new place',
-  'An evening among strangers',
-  'Sitting with the cost of it',
-];
-
-// ── TRAJECTORY LOGIC ─────────────────────────────────────────
 function getTomorrowShiftFromCommit(commit) {
   if (!commit) {
     return {
@@ -1278,7 +1278,7 @@ function getTomorrowShiftFromCommit(commit) {
       effectLabel: 'No trajectory shift yet',
       effectText: 'Tomorrow’s reading would stay close to today’s baseline signals.',
       sliderDelta: { stab: 0, mast: 0, soc: 0 },
-      emphasisAdd: []
+      emphasisAdd: [],
     };
   }
 
@@ -1290,7 +1290,7 @@ function getTomorrowShiftFromCommit(commit) {
       effectLabel: 'Ritual creates structure',
       effectText: 'Repeating a self-owned ritual adds continuity. Tomorrow’s reading will slightly privilege grounded routines, steadier mood, and more livable forms of change.',
       sliderDelta: { stab: -1, mast: 0, soc: 0 },
-      emphasisAdd: ['Grounding', 'Consistency']
+      emphasisAdd: ['Grounding', 'Consistency'],
     };
   }
 
@@ -1300,7 +1300,7 @@ function getTomorrowShiftFromCommit(commit) {
       effectLabel: 'Calm becomes a signal filter',
       effectText: 'Because you chose to test calm directly, tomorrow’s cards will pay more attention to environments, rhythms, and relationships that lower internal friction.',
       sliderDelta: { stab: -1, mast: 0, soc: 1 },
-      emphasisAdd: ['Calm', 'Lower friction']
+      emphasisAdd: ['Calm', 'Lower friction'],
     };
   }
 
@@ -1310,7 +1310,7 @@ function getTomorrowShiftFromCommit(commit) {
       effectLabel: 'Ambivalence becomes integrated',
       effectText: 'Naming both desire and grief softens the reading’s extremes. Tomorrow’s cards will frame trade-offs with more emotional integration and less all-or-nothing tension.',
       sliderDelta: { stab: 0, mast: 0, soc: 0 },
-      emphasisAdd: ['Integration', 'Emotional range']
+      emphasisAdd: ['Integration', 'Emotional range'],
     };
   }
 
@@ -1320,7 +1320,7 @@ function getTomorrowShiftFromCommit(commit) {
       effectLabel: 'Independence is reinforced',
       effectText: 'Testing independence nudges the next simulation toward self-authorship, experimentation, and more autonomous forms of daily life.',
       sliderDelta: { stab: 1, mast: 1, soc: 1 },
-      emphasisAdd: ['Independence', 'Self-authorship']
+      emphasisAdd: ['Independence', 'Self-authorship'],
     };
   }
 
@@ -1330,7 +1330,7 @@ function getTomorrowShiftFromCommit(commit) {
       effectLabel: 'Belonging becomes the lens',
       effectText: 'Because you chose to test belonging, tomorrow’s cards will more strongly weight community cues, social fit, and where connection becomes easier.',
       sliderDelta: { stab: -1, mast: 0, soc: -1 },
-      emphasisAdd: ['Belonging', 'Social fit']
+      emphasisAdd: ['Belonging', 'Social fit'],
     };
   }
 
@@ -1340,7 +1340,7 @@ function getTomorrowShiftFromCommit(commit) {
       effectLabel: 'Security is strengthened',
       effectText: 'Testing security biases the next reading toward durability, predictability, and what helps the future feel more structurally safe.',
       sliderDelta: { stab: -1, mast: -1, soc: 0 },
-      emphasisAdd: ['Security', 'Durability']
+      emphasisAdd: ['Security', 'Durability'],
     };
   }
 
@@ -1350,7 +1350,7 @@ function getTomorrowShiftFromCommit(commit) {
       effectLabel: 'Creativity is foregrounded',
       effectText: 'Testing creativity biases the next reading toward experimentation, novelty, and forms of life that feel expressive rather than merely efficient.',
       sliderDelta: { stab: 1, mast: 1, soc: 0 },
-      emphasisAdd: ['Creativity', 'Experiment']
+      emphasisAdd: ['Creativity', 'Experiment'],
     };
   }
 
@@ -1359,45 +1359,53 @@ function getTomorrowShiftFromCommit(commit) {
     effectLabel: 'A small action changes the weighting',
     effectText: 'Tomorrow’s reading would subtly shift toward whatever this action made more real in your life.',
     sliderDelta: { stab: 0, mast: 0, soc: 0 },
-    emphasisAdd: ['Trajectory shift']
+    emphasisAdd: ['Trajectory shift'],
   };
 }
 
 function getBiasedSliders() {
-  const baseStab = +fv('sl-stab');
-  const baseMast = +fv('sl-mast');
-  const baseSoc  = +fv('sl-soc');
+  const baseStab = +document.getElementById('sl-stab').value;
+  const baseMast = +document.getElementById('sl-mast').value;
+  const baseSoc = +document.getElementById('sl-soc').value;
 
   return {
     stab: clamp(baseStab + trajectoryState.sliderDelta.stab, 1, 5),
     mast: clamp(baseMast + trajectoryState.sliderDelta.mast, 1, 5),
-    soc:  clamp(baseSoc  + trajectoryState.sliderDelta.soc, 1, 5),
+    soc: clamp(baseSoc + trajectoryState.sliderDelta.soc, 1, 5),
   };
 }
 
-// ── BUILD INTERPRETATION ─────────────────────────────────────
 function buildInterp() {
   const biased = getBiasedSliders();
   const stab = biased.stab;
   const mast = biased.mast;
-  const soc  = biased.soc;
+  const soc = biased.soc;
 
   const v1 = vals[0];
   const v2 = vals[1];
   const afraid = fv('inp-afraid');
   const change = fv('inp-change');
 
-  const fTone = stab >= 4 ? 'a strong gravitational pull toward freedom and open possibility'
-              : stab <= 2 ? 'a deep anchoring need for stability and familiar ground'
-              : 'a live tension between holding ground and releasing into the unknown';
+  const fTone =
+    stab >= 4
+      ? 'a strong gravitational pull toward freedom and open possibility'
+      : stab <= 2
+      ? 'a deep anchoring need for stability and familiar ground'
+      : 'a live tension between holding ground and releasing into the unknown';
 
-  const mTone = mast >= 4 ? 'a preference for broad exploration over specialised depth'
-              : mast <= 2 ? 'a drive toward mastery — depth over breadth, knowing over wandering'
-              : 'a balance between going deep and remaining curious';
+  const mTone =
+    mast >= 4
+      ? 'a preference for broad exploration over specialised depth'
+      : mast <= 2
+      ? 'a drive toward mastery, depth over breadth, knowing over wandering'
+      : 'a balance between going deep and remaining curious';
 
-  const sTone = soc <= 2 ? 'someone who draws life from other people and needs community to feel whole'
-              : soc >= 4 ? 'someone who finds clarity in solitude and recharges alone'
-              : 'someone who moves fluidly between connection and quiet';
+  const sTone =
+    soc <= 2
+      ? 'someone who draws life from other people and needs community to feel whole'
+      : soc >= 4
+      ? 'someone who finds clarity in solitude and recharges alone'
+      : 'someone who moves fluidly between connection and quiet';
 
   const reading =
     `${titleCase(sTone)}, with ${fTone} and ${mTone}. ` +
@@ -1412,58 +1420,48 @@ function buildInterp() {
   if (stab <= 2) emphases.push({ label: 'Stability & ground', col: 'teal' });
   if (mast >= 4) emphases.push({ label: 'Exploration', col: 'gold' });
   if (mast <= 2) emphases.push({ label: 'Mastery & depth', col: 'teal' });
-  if (soc <= 2)  emphases.push({ label: 'Social belonging', col: 'teal' });
-  if (soc >= 4)  emphases.push({ label: 'Solitary clarity', col: 'teal' });
+  if (soc <= 2) emphases.push({ label: 'Social belonging', col: 'teal' });
+  if (soc >= 4) emphases.push({ label: 'Solitary clarity', col: 'teal' });
 
   emphases.push({ label: v1, col: 'rose' });
   emphases.push({ label: v2, col: 'rose' });
 
-  trajectoryState.emphasisAdd.forEach(label => {
+  trajectoryState.emphasisAdd.forEach((label) => {
     emphases.push({ label, col: 'gold' });
   });
 
-  document.getElementById('emph-set').innerHTML =
-    emphases.slice(0, 7).map(e => `<span class="emph-chip ${e.col}">${e.label}</span>`).join('');
+  document.getElementById('emph-set').innerHTML = emphases
+    .slice(0, 7)
+    .map((e) => `<span class="emph-chip ${e.col}">${e.label}</span>`)
+    .join('');
 
   document.getElementById('tension-set').innerHTML = [
     { left: 'Stability', right: 'Freedom', val: stab, color: 'var(--gold)' },
     { left: 'Mastery', right: 'Exploration', val: mast, color: 'var(--gold)' },
     { left: 'Social', right: 'Solitary', val: soc, color: 'var(--teal)' },
-  ].map(t => `
-    <div>
-      <div class="tension-poles"><span>${t.left}</span><span>${t.right}</span></div>
-      <div class="tension-track">
-        <div class="tension-fill" style="width:${((t.val - 1) / 4) * 100}%;background:${t.color};"></div>
+  ]
+    .map(
+      (t) => `
+      <div>
+        <div class="tension-poles"><span>${t.left}</span><span>${t.right}</span></div>
+        <div class="tension-track">
+          <div class="tension-fill" style="width:${((t.val - 1) / 4) * 100}%;background:${t.color};"></div>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `
+    )
+    .join('');
 }
 
-// ── BUILD CARDS ──────────────────────────────────────────────
 async function buildAgentReport(inputs) {
-  const prompt = `
-You are an AI agent who was dispatched to live in the future ${inputs.manifestation} 
-describes. You spent three days there. You are now reporting back.
-Report 1 Finding - Snapshot of the day to day, routine 
+  try {
+    console.log('buildAgentReport starting');
 
-Report 2 Finding - Snapshot capturing social context/belonging
-
-Report 3 Finding - Challenges and trade-offs 
-
-*Note what user inputs feed into the dispatch: what they want to manifest, their values sliders, their fear, what they want more/less of
-
-**Prompt** 
-
-You are an AI agent who was dispatched to live in the future [user] is imagining.
+    const prompt = `
+You are an AI agent who was dispatched to live in the future ${inputs.manifestation} describes.
 You spent three days there. You are now reporting back.
 
-You experienced this future from the inside — not as an observer,
-but as the person living it. Everything you report is specific,
-grounded, and honest. You do not sugarcoat. You do not catastrophize.
-You report what you actually found.
-
 The person who sent you has told you:
-
 - What they want to manifest: ${inputs.manifestation}
 - What they want more of: ${inputs.more_of}
 - What they want less of: ${inputs.less_of}
@@ -1476,125 +1474,107 @@ The person who sent you has told you:
 Generate your report in three findings. Return JSON ONLY.
 
 REPORT 1 — Daily Life & Routine
-What did the day-to-day actually look like? Where did you wake up?
-What did a Tuesday feel like? Include physical environment,
-time, money, small rituals. No big meaning. Just life.
+What did the day-to-day actually look like? Where did you wake up? What did a Tuesday feel like? Include physical environment, time, money, small rituals.
 
 REPORT 2 — Social World & Belonging
-Who was around? How did people treat you? How were you perceived?
-What was the texture of connection — was it easy, effortful, lonely, full?
-Include one specific interaction.
+Who was around? How did people treat you? How were you perceived? Include one specific interaction.
 
 REPORT 3 — The Cost & The Surprise
-What was harder than expected? What did you have to give up?
-What surprised you — good or bad? There are no perfect futures.
-Report the friction honestly.
+What was harder than expected? What did you have to give up? What surprised you, good or bad?
 
 AGENT RECOMMENDATION
-Based on what you found, what is the single most useful real-world
-step this person could take this week to test whether this future
-is actually right for them? Be specific. Name a concrete action,
-not a vague direction.
+Based on what you found, what is the single most useful real-world step this person could take this week to test whether this future is actually right for them?
 
 Rules:
-
 - 120 to 160 words per finding
-- Write in second person ("You wake up...", "The coffee shop where you work...")
-- Be specific: name locations, costs, times, types of people
-- Avoid vague phrases like "you feel fulfilled" or "you feel at peace"
-- The agent recommendation must be one sentence, one action, immediately doable
+- Write in second person
+- Be specific
+- Return valid JSON only
 
-Return this JSON structure and nothing else:
-
+Return exactly:
 {
-"report_1": {
-"title": "",
-"finding": "",
-"signal": ""
-},
-"report_2": {
-"title": "",
-"finding": "",
-"signal": ""
-},
-"report_3": {
-"title": "",
-"finding": "",
-"signal": ""
-},
-"agent_recommendation": ""
+  "report_1": { "title": "", "finding": "", "signal": "" },
+  "report_2": { "title": "", "finding": "", "signal": "" },
+  "report_3": { "title": "", "finding": "", "signal": "" },
+  "agent_recommendation": ""
 }
-
-The "signal" field is one short phrase (4 to 6 words) that captures
-the emotional texture of that finding. Like a field note header.
-Example: "Quieter than you expected" or "The mornings felt earned."
 `;
 
-  const response = await fetch("/api/agent", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 1500,
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ]
-    })
-  });
+    console.log('Calling /api/agent');
 
-  const data = await response.json();
-  console.log("API response:", JSON.stringify(data));
+    const response = await fetch('/api/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        temperature: 0,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      }),
+    });
 
-  if (data.error) {
-    console.error("API error:", data.error);
-    return fallbackReport();
-  }
+    const rawText = await response.text();
+    console.log('Raw API response:', rawText);
 
-  try {
-    const raw = data.content[0].text;
-    const cleaned = raw.replace(/```json|```/g, "").trim();
-    return JSON.parse(cleaned);
+    if (!response.ok) {
+      return fallbackReport(`HTTP ${response.status}`);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (err) {
+      return fallbackReport('Response was not valid JSON');
+    }
+
+    if (data.error) {
+      return fallbackReport(`API error: ${JSON.stringify(data.error)}`);
+    }
+
+    let raw = '';
+
+    if (Array.isArray(data.content)) {
+      const textBlock = data.content.find((item) => item.type === 'text');
+      raw = textBlock?.text || '';
+    }
+
+    if (!raw && typeof data.completion === 'string') {
+      raw = data.completion;
+    }
+
+    if (!raw) {
+      console.error('No model text found in response:', data);
+      return fallbackReport('No model text found');
+    }
+
+    const cleaned = raw.replace(/```json|```/g, '').trim();
+    console.log('Cleaned model output:', cleaned);
+
+    try {
+      return JSON.parse(cleaned);
+    } catch (err) {
+      return fallbackReport('Model output was not parseable JSON');
+    }
   } catch (err) {
-    console.error("Parsing failed:", err);
-    console.log("Raw output:", data);
-    return fallbackReport();
+    console.error('buildAgentReport failed:', err);
+    return fallbackReport(err?.message || 'Unknown fetch error');
   }
 }
 
-function fallbackReport() {
-  return {
-    report_1: {
-      title: "Day 1 — Daily Life",
-      finding: "The agent encountered an unexpected error on this dispatch. Try again.",
-      signal: "Signal unclear"
-    },
-    report_2: {
-      title: "Day 2 — Social World",
-      finding: "The agent encountered an unexpected error on this dispatch. Try again.",
-      signal: "Signal unclear"
-    },
-    report_3: {
-      title: "Day 3 — The Cost",
-      finding: "The agent encountered an unexpected error on this dispatch. Try again.",
-      signal: "Signal unclear"
-    },
-    agent_recommendation: "Dispatch the agent again to retrieve your report."
-  };
-}
-
-// ── BUILD MICRO-COMMITMENTS ──────────────────────────────────
 function buildCommits() {
-  const v1     = vals[0];
-  const more   = fv('inp-more');
+  const v1 = vals[0];
+  const more = fv('inp-more');
   const afraid = fv('inp-afraid');
 
   commits = [
     {
       title: 'Morning anchor ritual',
-      desc: 'Choose one consistent act — coffee, journaling, a short walk — that belongs entirely to you. Repeat it every morning for one week.',
+      desc: 'Choose one consistent act, coffee, journaling, or a short walk, that belongs entirely to you. Repeat it every morning for one week.',
       time: '15 min / day',
     },
     {
@@ -1611,13 +1591,14 @@ function buildCommits() {
       title: 'Agent recommendation',
       desc: window.agentRecommendation || 'Take one concrete step this week.',
       time: 'This week',
-    }
+    },
   ];
 }
 
-// ── RENDER CARD ──────────────────────────────────────────────
 function renderCard(idx) {
   const c = cards[idx];
+  if (!c) return;
+
   cardFlipped = false;
   ratings[idx] = ratings[idx] ?? null;
 
@@ -1658,17 +1639,24 @@ function renderCard(idx) {
   front.appendChild(botDiv);
 
   const saved = ratings[idx];
-  const pillsHTML = c.tradeoffs.map(t => `
-    <div class="t-pill">
-      <span class="t-dot ${t.lvl.toLowerCase()}"></span>
-      <span class="t-name">${t.name}</span>
-      <span class="t-lvl ${t.lvl.toLowerCase()}">${t.lvl}</span>
-    </div>
-  `).join('');
+  const pillsHTML = c.tradeoffs
+    .map(
+      (t) => `
+      <div class="t-pill">
+        <span class="t-dot ${t.lvl.toLowerCase()}"></span>
+        <span class="t-name">${t.name}</span>
+        <span class="t-lvl ${t.lvl.toLowerCase()}">${t.lvl}</span>
+      </div>
+    `
+    )
+    .join('');
 
-  const ratingHTML = [1, 2, 3, 4, 5].map(n =>
-    `<button class="r-btn ${saved === n ? 'sel' : ''}" data-r="${n}" onclick="setRating(${idx},${n})">${n}</button>`
-  ).join('');
+  const ratingHTML = [1, 2, 3, 4, 5]
+    .map(
+      (n) =>
+        `<button class="r-btn ${saved === n ? 'sel' : ''}" data-r="${n}" onclick="setRating(${idx},${n})">${n}</button>`
+    )
+    .join('');
 
   const back = document.getElementById('card-back');
   back.innerHTML = `
@@ -1679,8 +1667,7 @@ function renderCard(idx) {
         <span class="card-back-num">${INV_ROMAN[idx]}</span>
       </div>
       <p class="card-back-title">${c.title}</p>
-      <p class="card-back-title">${c.title}</p>
-<p class="reading-block-label" style="display:block;margin-top:4px;margin-bottom:12px;font-style:italic;opacity:.7;">${c.signal || ''}</p>
+      <p class="reading-block-label" style="display:block;margin-top:4px;margin-bottom:12px;font-style:italic;opacity:.7;">${c.signal || ''}</p>
       <div style="border-top:1px solid var(--silver-3);"></div>
       <p class="card-vignette">${c.vignette}</p>
       <div style="border-top:1px solid var(--silver-3);"></div>
@@ -1702,7 +1689,6 @@ function renderCard(idx) {
   nextBtn.textContent = idx === 2 ? 'Complete the Reading →' : 'Next Card →';
 }
 
-// ── HANDLE CARD TAP ──────────────────────────────────────────
 function handleCardTap() {
   if (cardFlipped) return;
   cardFlipped = true;
@@ -1714,15 +1700,13 @@ function handleCardTap() {
   }, 720);
 }
 
-// ── SET RATING ───────────────────────────────────────────────
 function setRating(idx, r) {
   ratings[idx] = r;
-  document.querySelectorAll('#card-back .r-btn').forEach(b =>
-    b.classList.toggle('sel', +b.dataset.r === r)
-  );
+  document.querySelectorAll('#card-back .r-btn').forEach((b) => {
+    b.classList.toggle('sel', +b.dataset.r === r);
+  });
 }
 
-// ── NEXT CARD ────────────────────────────────────────────────
 document.getElementById('card-next-btn').addEventListener('click', () => {
   if (cardIdx < 2) {
     cardIdx++;
@@ -1733,32 +1717,34 @@ document.getElementById('card-next-btn').addEventListener('click', () => {
   }
 });
 
-// ── RENDER COMMITMENTS ───────────────────────────────────────
 function renderCommitments() {
   buildCommits();
   chosenCommit = null;
   const grid = document.getElementById('commitment-grid');
-  grid.innerHTML = commits.map((c, i) => `
-    <div class="commit-card" data-ci="${i}" onclick="selectCommit(${i})">
-      <div class="commit-check" id="cc-${i}">✓</div>
-      <div class="commit-body">
-        <p class="commit-title">${c.title}</p>
-        <p class="commit-desc">${c.desc}</p>
-        <span class="commit-time">${c.time}</span>
+  grid.innerHTML = commits
+    .map(
+      (c, i) => `
+      <div class="commit-card" data-ci="${i}" onclick="selectCommit(${i})">
+        <div class="commit-check" id="cc-${i}">✓</div>
+        <div class="commit-body">
+          <p class="commit-title">${c.title}</p>
+          <p class="commit-desc">${c.desc}</p>
+          <span class="commit-time">${c.time}</span>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `
+    )
+    .join('');
 }
 
 function selectCommit(i) {
   chosenCommit = commits[i];
-  document.querySelectorAll('.commit-card').forEach((c, ci) =>
-    c.classList.toggle('chosen', ci === i)
-  );
+  document.querySelectorAll('.commit-card').forEach((c, ci) => {
+    c.classList.toggle('chosen', ci === i);
+  });
   document.getElementById('commit-error').style.display = 'none';
 }
 
-// ── SEAL COMMITMENT ──────────────────────────────────────────
 document.getElementById('btn-commit').addEventListener('click', () => {
   if (!chosenCommit) {
     document.getElementById('commit-error').style.display = 'block';
@@ -1767,37 +1753,46 @@ document.getElementById('btn-commit').addEventListener('click', () => {
 
   trajectoryState = getTomorrowShiftFromCommit(chosenCommit);
 
-  // ── SAVE SESSION DATA TO GOOGLE SHEETS ──
   const formData = new FormData();
-  formData.append('data', JSON.stringify({
-    change: fv('inp-change'),
-    more: fv('inp-more'),
-    less: fv('inp-less'),
-    afraid: fv('inp-afraid'),
-    values: vals,
-    stability: +document.getElementById('sl-stab').value,
-    mastery:   +document.getElementById('sl-mast').value,
-    social:    +document.getElementById('sl-soc').value,
-    readingText: document.getElementById('reading-text').textContent,
-    card1Title: cards[0]?.title, card1Rating: ratings[0],
-    card2Title: cards[1]?.title, card2Rating: ratings[1],
-    card3Title: cards[2]?.title, card3Rating: ratings[2],
-    commitment: chosenCommit.title,
-    effectText: trajectoryState.effectText
-  }));
-  fetch('https://script.google.com/macros/s/AKfycbx9BAM1ec3ImCqtdCNCfRjUDkGTDU5c5pJaJhB6gNCTjsITg1WcFnP08YJXB4AbSBen/exec', {
-    method: 'POST',
-    body: formData
-  }).catch(() => {});
+  formData.append(
+    'data',
+    JSON.stringify({
+      change: fv('inp-change'),
+      more: fv('inp-more'),
+      less: fv('inp-less'),
+      afraid: fv('inp-afraid'),
+      values: vals,
+      stability: +document.getElementById('sl-stab').value,
+      mastery: +document.getElementById('sl-mast').value,
+      social: +document.getElementById('sl-soc').value,
+      readingText: document.getElementById('reading-text').textContent,
+      card1Title: cards[0]?.title,
+      card1Rating: ratings[0],
+      card2Title: cards[1]?.title,
+      card2Rating: ratings[1],
+      card3Title: cards[2]?.title,
+      card3Rating: ratings[2],
+      commitment: chosenCommit.title,
+      effectText: trajectoryState.effectText,
+    })
+  );
+
+  fetch(
+    'https://script.google.com/macros/s/AKfycbx9BAM1ec3ImCqtdCNCfRjUDkGTDU5c5pJaJhB6gNCTjsITg1WcFnP08YJXB4AbSBen/exec',
+    {
+      method: 'POST',
+      body: formData,
+    }
+  ).catch(() => {});
 
   document.querySelector('.confirm-card').innerHTML = `
     <p class="reading-text" style="text-align:center;">You chose to test:</p>
-    <p class="chosen-commitment-name" id="confirm-commit-name">${chosenCommit.title}</p>
+    <p class="chosen-commitment-name">${chosenCommit.title}</p>
     <p class="continuation-text">${trajectoryState.effectText}</p>
     <div style="border-top:1px solid var(--silver-3);margin-top:4px;padding-top:12px;">
       <span class="reading-block-label" style="display:block;margin-bottom:8px;text-align:center;">Tomorrow's reading will tilt toward</span>
       <div class="emph-set" style="justify-content:center;">
-        ${trajectoryState.emphasisAdd.map(label => `<span class="emph-chip gold">${label}</span>`).join('')}
+        ${trajectoryState.emphasisAdd.map((label) => `<span class="emph-chip gold">${label}</span>`).join('')}
       </div>
     </div>
   `;
@@ -1805,11 +1800,10 @@ document.getElementById('btn-commit').addEventListener('click', () => {
   goTo('page-confirm');
 });
 
-// ── BEGIN BUTTON ─────────────────────────────────────────────
 document.getElementById('btn-begin').addEventListener('click', () => {
   const change = fv('inp-change');
-  const more   = fv('inp-more');
-  const less   = fv('inp-less');
+  const more = fv('inp-more');
+  const less = fv('inp-less');
   const afraid = fv('inp-afraid');
 
   if (!change || !more || !less || !afraid || vals.length !== 2) {
@@ -1822,76 +1816,103 @@ document.getElementById('btn-begin').addEventListener('click', () => {
   goTo('page-interp');
 });
 
-// ── DRAW CARDS BUTTON ────────────────────────────────────────
 document.getElementById('btn-draw').addEventListener('click', async () => {
-  const inputs = {
-    manifestation: fv('inp-change'),
-    more_of: fv('inp-more'),
-    less_of: fv('inp-less'),
-    fear: fv('inp-afraid'),
-    values: vals.join(', '),
-    stability: document.getElementById('sl-stab').value,
-    belonging: document.getElementById('sl-soc').value,
-    mastery: document.getElementById('sl-mast').value,
-  };
+  try {
+    const inputs = {
+      manifestation: fv('inp-change'),
+      more_of: fv('inp-more'),
+      less_of: fv('inp-less'),
+      fear: fv('inp-afraid'),
+      values: vals.join(', '),
+      stability: document.getElementById('sl-stab').value,
+      belonging: document.getElementById('sl-soc').value,
+      mastery: document.getElementById('sl-mast').value,
+    };
 
-  cardIdx = 0;
-  ratings = [null, null, null];
-  goTo('page-sim');
+    cardIdx = 0;
+    ratings = [null, null, null];
 
-  const report = await buildAgentReport(inputs);
+    goTo('page-sim');
 
-  // Transform new structure into what renderCard expects
-  cards = [
-    {
-      title: report.report_1.title,
-      vignette: report.report_1.finding,
-      signal: report.report_1.signal,
-      tradeoffs: [{ name: 'Daily life', lvl: 'Medium' }]
-    },
-    {
-      title: report.report_2.title,
-      vignette: report.report_2.finding,
-      signal: report.report_2.signal,
-      tradeoffs: [{ name: 'Social world', lvl: 'Medium' }]
-    },
-    {
-      title: report.report_3.title,
-      vignette: report.report_3.finding,
-      signal: report.report_3.signal,
-      tradeoffs: [{ name: 'The cost', lvl: 'Low' }]
-    },
-  ];
+    const report = await buildAgentReport(inputs);
 
-  // Store recommendation for commitment page
-  window.agentRecommendation = report.agent_recommendation;
+    cards = [
+      {
+        title: report.report_1?.title || 'Day 1 — Daily Life',
+        vignette: report.report_1?.finding || 'No finding returned.',
+        signal: report.report_1?.signal || '',
+        tradeoffs: [{ name: 'Daily life', lvl: 'Medium' }],
+      },
+      {
+        title: report.report_2?.title || 'Day 2 — Social World',
+        vignette: report.report_2?.finding || 'No finding returned.',
+        signal: report.report_2?.signal || '',
+        tradeoffs: [{ name: 'Social world', lvl: 'Medium' }],
+      },
+      {
+        title: report.report_3?.title || 'Day 3 — The Cost',
+        vignette: report.report_3?.finding || 'No finding returned.',
+        signal: report.report_3?.signal || '',
+        tradeoffs: [{ name: 'The cost', lvl: 'Low' }],
+      },
+    ];
 
-  setTimeout(() => renderCard(0), 420);
+    window.agentRecommendation = report.agent_recommendation || 'Take one concrete step this week.';
+
+    setTimeout(() => renderCard(0), 420);
+  } catch (err) {
+    console.error('btn-draw handler failed:', err);
+
+    const report = fallbackReport(err?.message || 'btn-draw failed');
+
+    cards = [
+      {
+        title: report.report_1.title,
+        vignette: report.report_1.finding,
+        signal: report.report_1.signal,
+        tradeoffs: [{ name: 'Daily life', lvl: 'Medium' }],
+      },
+      {
+        title: report.report_2.title,
+        vignette: report.report_2.finding,
+        signal: report.report_2.signal,
+        tradeoffs: [{ name: 'Social world', lvl: 'Medium' }],
+      },
+      {
+        title: report.report_3.title,
+        vignette: report.report_3.finding,
+        signal: report.report_3.signal,
+        tradeoffs: [{ name: 'The cost', lvl: 'Low' }],
+      },
+    ];
+
+    window.agentRecommendation = report.agent_recommendation;
+    goTo('page-sim');
+    setTimeout(() => renderCard(0), 420);
+  }
 });
 
-// ── RESTART / NEXT DAY ───────────────────────────────────────
 function restartReading() {
-  vals         = [];
-  cardIdx      = 0;
-  cardFlipped  = false;
-  ratings      = [null, null, null];
+  vals = [];
+  cardIdx = 0;
+  cardFlipped = false;
+  ratings = [null, null, null];
   chosenCommit = null;
-  cards        = [];
-  commits      = [];
+  cards = [];
+  commits = [];
 
-  document.querySelectorAll('.vchip').forEach(c => c.classList.remove('on'));
+  document.querySelectorAll('.vchip').forEach((c) => c.classList.remove('on'));
   document.getElementById('chip-hint').textContent = 'Select 2';
   document.getElementById('form-error').style.display = 'none';
   document.getElementById('commit-error').style.display = 'none';
 
-  ['inp-change', 'inp-more', 'inp-less', 'inp-afraid'].forEach(id => {
+  ['inp-change', 'inp-more', 'inp-less', 'inp-afraid'].forEach((id) => {
     document.getElementById(id).value = '';
   });
 
-  // Simulate tomorrow starting from a shifted baseline
   document.getElementById('sl-stab').value = clamp(3 + trajectoryState.sliderDelta.stab, 1, 5);
   document.getElementById('sl-mast').value = clamp(3 + trajectoryState.sliderDelta.mast, 1, 5);
-  document.getElementById('sl-soc').value  = clamp(3 + trajectoryState.sliderDelta.soc, 1, 5);
+  document.getElementById('sl-soc').value = clamp(3 + trajectoryState.sliderDelta.soc, 1, 5);
 
   goTo('page-input');
 }
