@@ -17,6 +17,7 @@ app.post('/api/agent', async (req, res) => {
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   try {
+    console.log('Proxying to Anthropic, model:', req.body.model);
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -27,8 +28,10 @@ app.post('/api/agent', async (req, res) => {
       body: JSON.stringify(req.body)
     });
     const data = await response.json();
+    if (data.error) console.error('Anthropic API error:', JSON.stringify(data.error));
     res.json(data);
   } catch (err) {
+    console.error('Proxy error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
