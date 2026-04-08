@@ -1464,14 +1464,14 @@ You report what you actually found.
 
 The person who sent you has told you:
 
-- What they want to manifest: {manifestation}
-- What they want more of: {more_of}
-- What they want less of: {less_of}
-- What they are afraid of: {fear}
-- Their values: {values}
-- Stability vs Freedom (slider): {stability}
-- Belonging vs Solitude (slider): {belonging}
-- Mastery vs Exploration (slider): {mastery}
+- What they want to manifest: ${inputs.manifestation}
+- What they want more of: ${inputs.more_of}
+- What they want less of: ${inputs.less_of}
+- What they are afraid of: ${inputs.fear}
+- Their values: ${inputs.values}
+- Stability vs Freedom (slider): ${inputs.stability}
+- Belonging vs Solitude (slider): ${inputs.belonging}
+- Mastery vs Exploration (slider): ${inputs.mastery}
 
 Generate your report in three findings. Return JSON ONLY.
 
@@ -1546,6 +1546,12 @@ Example: "Quieter than you expected" or "The mornings felt earned."
   });
 
   const data = await response.json();
+  console.log("API response:", JSON.stringify(data));
+
+  if (data.error) {
+    console.error("API error:", data.error);
+    return fallbackReport();
+  }
 
   try {
     const raw = data.content[0].text;
