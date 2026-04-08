@@ -6,7 +6,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index_v4.html'));
@@ -62,6 +61,8 @@ app.post('/api/agent', async (req, res) => {
     });
   }
 });
+
+app.use(express.static(__dirname));
 
 app.listen(PORT, () => {
   console.log(`ALTER server running on port ${PORT}`);
