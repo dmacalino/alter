@@ -4,9 +4,9 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "npx serve . --listen $PORT"
+    "start": "node server.js"
   },
   "dependencies": {
-    "serve": "^14.2.6"
+    "express": "^4.22.1"
   }
 }
