@@ -1059,6 +1059,22 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
   </div><!-- /page-sim -->
 
+<!-- VERDICT PAGE -->
+<div class="page" id="page-verdict">
+  <div style="height:20px"></div>
+  <div class="mark">Agent Verdict</div>
+  <div class="divider"></div>
+  <div class="interp-glyph">✦</div>
+  <div class="reading-card">
+    <div class="reading-block">
+      <span class="reading-block-label">After three days, the agent says</span>
+      <p class="reading-text" id="verdict-text">—</p>
+    </div>
+  </div>
+  <button class="btn-ritual" onclick="renderCommitments(); goTo('page-commitment')">
+    <span>See Recommendations →</span>
+  </button>
+</div>
 
   <!-- ═══════════════════════════════════════════════
        PAGE 4 — AGENT RECOMMENDATIONS
@@ -1441,6 +1457,20 @@ Be unflinching here. What was genuinely harder than expected? What did you have 
 AGENT RECOMMENDATIONS
 Generate exactly THREE specific, immediately actionable steps this person could take THIS WEEK to test whether this future is right for them. Each should be different in nature — one practical, one social, one internal/reflective. Each must be one sentence, concrete, and doable in under 2 hours.
 
+DISPATCH LOG
+One sentence written by the agent in the moment of arriving — 
+present tense, atmospheric, specific to the user's future. 
+Like the first line of a field journal. 
+Example: "I've arrived on a Tuesday morning in Príncipe Real 
+and the first thing I notice is how quiet it is."
+
+VERDICT
+After three days, what is the agent's honest overall read? 
+One short paragraph — 40–60 words. Not a summary. 
+A gut feeling with evidence behind it. 
+Does this future seem right for this person based on what 
+their values and fears suggest? Be direct. Do not hedge.
+
 Rules:
 - 130–170 words per finding
 - Write in second person
@@ -1451,30 +1481,17 @@ Rules:
 Return ONLY this JSON structure with no extra text:
 
 {
-  "report_1": {
-    "title": "",
-    "finding": "",
-    "signal": ""
-  },
-  "report_2": {
-    "title": "",
-    "finding": "",
-    "signal": ""
-  },
-  "report_3": {
-    "title": "",
-    "finding": "",
-    "signal": ""
-  },
-  "agent_recommendations": [
-    { "title": "", "action": "", "type": "practical" },
-    { "title": "", "action": "", "type": "social" },
-    { "title": "", "action": "", "type": "reflective" }
-  ]
+  "dispatch_log": "",
+  "report_1": { "title": "", "finding": "", "signal": "" },
+  "report_2": { "title": "", "finding": "", "signal": "" },
+  "report_3": { "title": "", "finding": "", "signal": "" },
+  "verdict": "",
+  "agent_recommendations": [...]
 }
 
 The "signal" field is one short phrase (4–6 words) capturing the emotional texture of that finding. Like a field note header. Example: "Quieter than you expected" or "The mornings felt earned."
 The "title" for each recommendation should be 2–4 words. The "action" is the one-sentence instruction.`;
+
 
   const response = await fetch("/api/agent", {
     method: "POST",
@@ -1602,9 +1619,13 @@ document.getElementById('card-next-btn').addEventListener('click', () => {
     cardIdx++;
     renderCard(cardIdx);
   } else {
-    renderCommitments();
-    goTo('page-commitment');
+  // Show verdict before recommendations
+  const verdictEl = document.getElementById('verdict-text');
+  if (verdictEl && window.agentVerdict) {
+    verdictEl.textContent = window.agentVerdict;
   }
+  goTo('page-verdict');
+}
 });
 
 // ── RENDER AGENT RECOMMENDATIONS ────────────────────────────
@@ -1720,6 +1741,14 @@ document.getElementById('btn-draw').addEventListener('click', async () => {
 
   const report = await buildAgentReport(inputs);
 
+  // Show dispatch log on loading screen
+if (report.dispatch_log) {
+  const lastTxt = document.getElementById('txt-4');
+  if (lastTxt) {
+    lastTxt.textContent = report.dispatch_log;
+  }
+}
+
   cards = [
     { title: report.report_1.title, finding: report.report_1.finding, signal: report.report_1.signal },
     { title: report.report_2.title, finding: report.report_2.finding, signal: report.report_2.signal },
@@ -1727,6 +1756,7 @@ document.getElementById('btn-draw').addEventListener('click', async () => {
   ];
 
   window.agentRecommendations = report.agent_recommendations || [];
+  window.agentVerdict = report.verdict || '';
 
   // Small delay so loading screen feels intentional
   setTimeout(() => {
