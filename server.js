@@ -21,7 +21,6 @@ app.post('/api/agent', async (req, res) => {
 
   try {
     console.log('Proxying to Anthropic, model:', req.body?.model);
-    console.log('Request body received:', JSON.stringify(req.body, null, 2));
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -35,7 +34,6 @@ app.post('/api/agent', async (req, res) => {
 
     const rawText = await response.text();
     console.log('Anthropic status:', response.status);
-    console.log('Anthropic raw response:', rawText);
 
     let data;
     try {
@@ -94,67 +92,12 @@ app.post('/api/speak', async (req, res) => {
       return res.status(500).json({ error: err });
     }
 
-    // Stream audio back to client
     res.setHeader('Content-Type', 'audio/mpeg');
     const buffer = await response.arrayBuffer();
     res.send(Buffer.from(buffer));
 
   } catch (err) {
     console.error('TTS error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/imagine', async (req, res) => {
-  const apiKey = process.env.REPLICATE_API_TOKEN;
-  console.log('Replicate key present:', !!apiKey, 'starts with r8_:', apiKey?.startsWith('r8_'));
-  if (!apiKey) return res.status(500).json({ error: 'Replicate key not configured' });
-
-  const { manifestation } = req.body;
-
-  const prompt = `Abstract painterly tarot card illustration. ${manifestation}. Moody atmospheric. No people, no faces, no hands, no text. Muted gold and dark tones. Feels like a place not a scene. Style contemporary tarot editorial illustration.`;
-
-  try {
-    // Start the prediction
-    const response = await fetch('https://api.replicate.com/v1/predictions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Token ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        input: {
-          prompt: prompt,
-          negative_prompt: "people, faces, hands, text, words, letters, photorealistic, ugly, blurry",
-          width: 512,
-          height: 768,
-          num_inference_steps: 30,
-          guidance_scale: 7.5
-        }
-      })
-    });
-
-    const prediction = await response.json();
-
-    // Poll until done
-    let result = prediction;
-    while (result.status !== 'succeeded' && result.status !== 'failed') {
-      await new Promise(r => setTimeout(r, 1000));
-      const poll = await fetch(`https://api.replicate.com/v1/predictions/${result.id}`, {
-        headers: { 'Authorization': `Token ${apiKey}` }
-      });
-      result = await poll.json();
-    }
-
-    if (result.status === 'failed') {
-      return res.status(500).json({ error: 'Image generation failed' });
-    }
-
-    res.json({ imageUrl: result.output[0] });
-
-  } catch (err) {
-    console.error('Imagine error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

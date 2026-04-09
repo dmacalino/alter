@@ -1533,7 +1533,6 @@ The "title" for each recommendation should be 2–4 words. The "action" is the o
   });
 
   const data = await response.json();
-  console.log("API response:", JSON.stringify(data));
 
   if (data.error) {
     console.error("API error:", data.error);
@@ -1568,26 +1567,6 @@ let currentAudio = null;
 const VOICE_ID = '6AUOG2nbfr0yFEeI0784';
 
 // ── IMAGE GENERATION ─────────────────────────────────────────
-let cardImage = null;
-
-async function generateCardImage(manifestation) {
-  console.log('Starting image generation for:', manifestation);
-  try {
-    const response = await fetch('/api/imagine', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ manifestation })
-    });
-    const data = await response.json();
-    if (data.imageUrl) {
-      cardImage = data.imageUrl;
-      console.log('Card image ready:', cardImage);
-    }
-  } catch (err) {
-    console.error('Image generation error:', err);
-    cardImage = null;
-  }
-}
 
 async function speakReport(idx) {
   const btn = document.getElementById(`voice-btn-${idx}`);
@@ -1647,20 +1626,9 @@ function renderCard(idx) {
   const front = document.getElementById('card-front');
 front.innerHTML = '';
 
-if (idx === 0 && cardImage) {
-  // Use AI generated image for card 1
-  const imgDiv = document.createElement('div');
-  imgDiv.className = 'card-scene-art';
-  imgDiv.style.backgroundImage = `url(${cardImage})`;
-  imgDiv.style.backgroundSize = 'cover';
-  imgDiv.style.backgroundPosition = 'center';
-  front.appendChild(imgDiv);
-} else {
-  // Fall back to CSS scenes for cards 2 and 3
-  const tpl = document.getElementById(SCENE_TPLS[idx]);
-  const clone = tpl.content.cloneNode(true);
-  front.appendChild(clone);
-}
+const tpl = document.getElementById(SCENE_TPLS[idx]);
+const clone = tpl.content.cloneNode(true);
+front.appendChild(clone);
 
   const topDiv = document.createElement('div');
   topDiv.className = 'card-front-top';
@@ -1854,20 +1822,6 @@ document.getElementById('btn-draw').addEventListener('click', async () => {
 
   const report = await buildAgentReport(inputs);
 // Generate image in background — doesn't block
-generateCardImage(inputs.manifestation);
-
-// Check every second if image is ready and update card 1 front
-const imageChecker = setInterval(() => {
-  if (cardImage) {
-    const artDiv = document.querySelector('.card-scene-art');
-    if (artDiv) {
-      artDiv.style.backgroundImage = `url(${cardImage})`;
-      artDiv.style.backgroundSize = 'cover';
-      artDiv.style.backgroundPosition = 'center';
-    }
-    clearInterval(imageChecker);
-  }
-}, 1000);
 
   // Show dispatch log on loading screen
 if (report.dispatch_log) {
