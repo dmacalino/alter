@@ -1571,6 +1571,7 @@ const VOICE_ID = '6AUOG2nbfr0yFEeI0784';
 let cardImage = null;
 
 async function generateCardImage(manifestation) {
+  console.log('Starting image generation for:', manifestation);
   try {
     const response = await fetch('/api/imagine', {
       method: 'POST',
@@ -1857,7 +1858,7 @@ generateCardImage(inputs.manifestation);
 
 // Check every second if image is ready and update card 1 front
 const imageChecker = setInterval(() => {
-  if (cardImage && cardIdx === 0) {
+  if (cardImage) {
     const artDiv = document.querySelector('.card-scene-art');
     if (artDiv) {
       artDiv.style.backgroundImage = `url(${cardImage})`;
