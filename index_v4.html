@@ -35,6 +35,35 @@
 *,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
 html { height:100%; }
 
+.voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(201,169,110,.35);
+  border-radius: var(--r-pill);
+  font-family: 'Cinzel', serif;
+  font-size: .6rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all var(--tr-med);
+}
+.voice-btn:hover {
+  background: var(--gold-dim);
+  border-color: rgba(201,169,110,.6);
+}
+.voice-btn.loading {
+  opacity: .5;
+  cursor: wait;
+}
+.voice-btn.playing {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
 body {
   font-family:'Outfit', sans-serif;
   font-weight:300;
