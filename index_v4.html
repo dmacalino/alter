@@ -1581,6 +1581,9 @@ function renderCard(idx) {
       </div>
       <p class="card-back-title">${c.title}</p>
       <p class="card-signal">${c.signal || ''}</p>
+      <button class="voice-btn" id="voice-btn-${idx}" onclick="speakReport(${idx})">
+      ▶ Hear this report
+      </button>
       <div style="border-top:1px solid var(--silver-3);"></div>
       <p class="card-finding">${c.finding}</p>
       <div style="border-top:1px solid var(--silver-3);"></div>
