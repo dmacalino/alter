@@ -1851,10 +1851,22 @@ document.getElementById('btn-draw').addEventListener('click', async () => {
   goTo('page-loading');
   startDispatchAnimation();
 
-  const [report] = await Promise.all([
-  buildAgentReport(inputs),
-  generateCardImage(inputs.manifestation)
-]);
+  const report = await buildAgentReport(inputs);
+// Generate image in background — doesn't block
+generateCardImage(inputs.manifestation);
+
+// Check every second if image is ready and update card 1 front
+const imageChecker = setInterval(() => {
+  if (cardImage && cardIdx === 0) {
+    const artDiv = document.querySelector('.card-scene-art');
+    if (artDiv) {
+      artDiv.style.backgroundImage = `url(${cardImage})`;
+      artDiv.style.backgroundSize = 'cover';
+      artDiv.style.backgroundPosition = 'center';
+    }
+    clearInterval(imageChecker);
+  }
+}, 1000);
 
   // Show dispatch log on loading screen
 if (report.dispatch_log) {
