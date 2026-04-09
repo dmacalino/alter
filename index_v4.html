@@ -1563,6 +1563,53 @@ function fallbackReport() {
   };
 }
 
+// ── VOICE / TTS ──────────────────────────────────────────────
+let currentAudio = null;
+const VOICE_ID = '6AUOG2nbfr0yFEeI0784';
+
+async function speakReport(idx) {
+  const btn = document.getElementById(`voice-btn-${idx}`);
+  const c = cards[idx];
+
+  // If already playing, stop
+  if (currentAudio && !currentAudio.paused) {
+    currentAudio.pause();
+    currentAudio = null;
+    if (btn) { btn.textContent = '▶ Hear this report'; btn.className = 'voice-btn'; }
+    return;
+  }
+
+  // Build the text — signal then finding
+  const text = `${c.signal}. ${c.finding}`;
+
+  if (btn) { btn.textContent = '… Dispatching voice'; btn.className = 'voice-btn loading'; }
+
+  try {
+    const response = await fetch('/api/speak', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voiceId: VOICE_ID })
+    });
+
+    if (!response.ok) throw new Error('Voice fetch failed');
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    currentAudio = new Audio(audioUrl);
+
+    currentAudio.onended = () => {
+      if (btn) { btn.textContent = '▶ Hear this report'; btn.className = 'voice-btn'; }
+    };
+
+    if (btn) { btn.textContent = '◼ Stop'; btn.className = 'voice-btn playing'; }
+    currentAudio.play();
+
+  } catch (err) {
+    console.error('Voice error:', err);
+    if (btn) { btn.textContent = '▶ Hear this report'; btn.className = 'voice-btn'; }
+  }
+}
+
 // ── RENDER CARD ──────────────────────────────────────────────
 function renderCard(idx) {
   const c = cards[idx];
