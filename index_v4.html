@@ -853,7 +853,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
     <p class="body-text" style="font-size:.95rem;max-width:360px;">
       ALTER sends an AI agent to live in the future you're imagining.<br/>
-      It comes back and tells you what it found.
+      It comes back and tells you what it found — and what it means for you.
     </p>
 
     <div class="onboard-steps">
@@ -987,7 +987,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
     <div class="divider"></div>
     <div class="interp-glyph">✦</div>
 
-    <h2 class="section-title">Your agent has been briefed</h2>
+    <h2 class="section-title">Your agent is ready</h2>
 
     <div class="reading-card" id="reading-card">
 
@@ -1012,7 +1012,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
     </div>
 
-    <p class="begin-hint">Three field reports incoming</p>
+    <p class="begin-hint">Your future is waiting</p>
 
     <button class="btn-ritual" id="btn-draw"><span>Send the Agent →</span></button>
 
@@ -1096,7 +1096,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
   <div class="interp-glyph">✦</div>
   <div class="reading-card">
     <div class="reading-block">
-      <span class="reading-block-label">After three days, the agent says</span>
+      <span class="reading-block-label">After three days in your future, the agent says</span>
       <p class="reading-text" id="verdict-text">—</p>
     </div>
   </div>
@@ -1567,6 +1567,27 @@ function fallbackReport() {
 let currentAudio = null;
 const VOICE_ID = '6AUOG2nbfr0yFEeI0784';
 
+// ── IMAGE GENERATION ─────────────────────────────────────────
+let cardImage = null;
+
+async function generateCardImage(manifestation) {
+  try {
+    const response = await fetch('/api/imagine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manifestation })
+    });
+    const data = await response.json();
+    if (data.imageUrl) {
+      cardImage = data.imageUrl;
+      console.log('Card image ready:', cardImage);
+    }
+  } catch (err) {
+    console.error('Image generation error:', err);
+    cardImage = null;
+  }
+}
+
 async function speakReport(idx) {
   const btn = document.getElementById(`voice-btn-${idx}`);
   const c = cards[idx];
@@ -1623,10 +1644,22 @@ function renderCard(idx) {
   scene.style.animation = 'cardDraw .55s cubic-bezier(.4,0,.2,1) both';
 
   const front = document.getElementById('card-front');
+front.innerHTML = '';
+
+if (idx === 0 && cardImage) {
+  // Use AI generated image for card 1
+  const imgDiv = document.createElement('div');
+  imgDiv.className = 'card-scene-art';
+  imgDiv.style.backgroundImage = `url(${cardImage})`;
+  imgDiv.style.backgroundSize = 'cover';
+  imgDiv.style.backgroundPosition = 'center';
+  front.appendChild(imgDiv);
+} else {
+  // Fall back to CSS scenes for cards 2 and 3
   const tpl = document.getElementById(SCENE_TPLS[idx]);
   const clone = tpl.content.cloneNode(true);
-  front.innerHTML = '';
   front.appendChild(clone);
+}
 
   const topDiv = document.createElement('div');
   topDiv.className = 'card-front-top';
@@ -1818,7 +1851,10 @@ document.getElementById('btn-draw').addEventListener('click', async () => {
   goTo('page-loading');
   startDispatchAnimation();
 
-  const report = await buildAgentReport(inputs);
+  const [report] = await Promise.all([
+  buildAgentReport(inputs),
+  generateCardImage(inputs.manifestation)
+]);
 
   // Show dispatch log on loading screen
 if (report.dispatch_log) {

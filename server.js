@@ -105,6 +105,59 @@ app.post('/api/speak', async (req, res) => {
   }
 });
 
+app.post('/api/imagine', async (req, res) => {
+  const apiKey = process.env.REPLICATE_API_TOKEN;
+  if (!apiKey) return res.status(500).json({ error: 'Replicate key not configured' });
+
+  const { manifestation } = req.body;
+
+  const prompt = `Abstract painterly tarot card illustration. ${manifestation}. Moody atmospheric. No people, no faces, no hands, no text. Muted gold and dark tones. Feels like a place not a scene. Style contemporary tarot editorial illustration.`;
+
+  try {
+    // Start the prediction
+    const response = await fetch('https://api.replicate.com/v1/predictions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        version: "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+        input: {
+          prompt: prompt,
+          negative_prompt: "people, faces, hands, text, words, letters, photorealistic, ugly, blurry",
+          width: 512,
+          height: 768,
+          num_inference_steps: 30,
+          guidance_scale: 7.5
+        }
+      })
+    });
+
+    const prediction = await response.json();
+
+    // Poll until done
+    let result = prediction;
+    while (result.status !== 'succeeded' && result.status !== 'failed') {
+      await new Promise(r => setTimeout(r, 1000));
+      const poll = await fetch(`https://api.replicate.com/v1/predictions/${result.id}`, {
+        headers: { 'Authorization': `Token ${apiKey}` }
+      });
+      result = await poll.json();
+    }
+
+    if (result.status === 'failed') {
+      return res.status(500).json({ error: 'Image generation failed' });
+    }
+
+    res.json({ imageUrl: result.output[0] });
+
+  } catch (err) {
+    console.error('Imagine error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.use(express.static(__dirname));
 
 app.listen(PORT, () => {
