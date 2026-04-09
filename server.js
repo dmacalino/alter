@@ -107,6 +107,7 @@ app.post('/api/speak', async (req, res) => {
 
 app.post('/api/imagine', async (req, res) => {
   const apiKey = process.env.REPLICATE_API_TOKEN;
+  console.log('Replicate key present:', !!apiKey, 'starts with r8_:', apiKey?.startsWith('r8_'));
   if (!apiKey) return res.status(500).json({ error: 'Replicate key not configured' });
 
   const { manifestation } = req.body;
