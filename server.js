@@ -122,7 +122,7 @@ app.post('/api/imagine', async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        version: "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+        version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
         input: {
           prompt: prompt,
           negative_prompt: "people, faces, hands, text, words, letters, photorealistic, ugly, blurry",
