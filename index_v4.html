@@ -10,9 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet"/>
 
 <style>
-/* ============================================================
-   TOKENS
-   ============================================================ */
 :root {
   --ink:       #0c0d10;
   --ink-2:     #13151a;
@@ -35,9 +32,6 @@
   --r-sm:      10px;
 }
 
-/* ============================================================
-   RESET & BASE
-   ============================================================ */
 *,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
 html { height:100%; }
 
@@ -51,7 +45,6 @@ body {
   cursor:default;
 }
 
-/* Grain overlay */
 body::before {
   content:'';
   position:fixed; inset:0; z-index:0;
@@ -61,7 +54,6 @@ body::before {
   opacity:.6;
 }
 
-/* Ambient vignette */
 body::after {
   content:'';
   position:fixed; inset:0; z-index:0;
@@ -69,16 +61,12 @@ body::after {
   background: radial-gradient(ellipse 70% 60% at 50% 40%, transparent 40%, rgba(0,0,0,.6) 100%);
 }
 
-/* ============================================================
-   APP SHELL
-   ============================================================ */
 .app {
   position:relative; z-index:1;
   min-height:100vh;
   display:flex; flex-direction:column; align-items:center;
 }
 
-/* ── Page system ── */
 .page {
   width:100%; max-width:520px;
   padding:40px 24px 60px;
@@ -101,7 +89,6 @@ body::after {
   transform:translateY(16px);
 }
 
-/* ── Header mark ── */
 .mark {
   font-family:'Cinzel', serif;
   font-size:.62rem;
@@ -113,19 +100,14 @@ body::after {
   margin-bottom:-8px;
 }
 
-/* ── Divider line ── */
 .divider {
   width:60px; height:1px;
   background:linear-gradient(90deg, transparent, var(--gold), transparent);
   opacity:.4;
   flex-shrink:0;
 }
-.divider.wide {
-  width:100%;
-  opacity:.15;
-}
+.divider.wide { width:100%; opacity:.15; }
 
-/* ── Typography ── */
 h1.ritual-title {
   font-family:'Cinzel', serif;
   font-size:clamp(1.8rem,5vw,2.6rem);
@@ -161,7 +143,6 @@ p.body-text {
 }
 p.body-text.left { text-align:left; }
 
-/* ── CTA Button ── */
 .btn-ritual {
   position:relative;
   padding:14px 36px;
@@ -205,6 +186,78 @@ p.body-text.left { text-align:left; }
 .btn-ghost:hover { color:var(--silver); }
 
 /* ============================================================
+   PAGE 0 — ONBOARDING
+   ============================================================ */
+#page-onboard {
+  justify-content:center;
+  padding-top:80px;
+  gap:32px;
+}
+
+.onboard-glyph {
+  font-size:2.8rem;
+  text-align:center;
+  filter:drop-shadow(0 0 18px rgba(201,169,110,.35));
+  animation:glyphPulse 3s ease-in-out infinite alternate;
+}
+
+.onboard-steps {
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.onboard-step {
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  padding:18px 20px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--silver-3);
+  border-radius:var(--r-card);
+}
+
+.onboard-step-num {
+  font-family:'Cinzel', serif;
+  font-size:.65rem;
+  letter-spacing:.2em;
+  color:var(--gold);
+  opacity:.7;
+  flex-shrink:0;
+  padding-top:2px;
+  min-width:24px;
+}
+
+.onboard-step-body {}
+
+.onboard-step-title {
+  font-family:'Cinzel', serif;
+  font-size:.78rem;
+  letter-spacing:.08em;
+  color:rgba(255,255,255,.9);
+  margin-bottom:5px;
+}
+
+.onboard-step-desc {
+  font-family:'Crimson Pro', serif;
+  font-size:.9rem;
+  font-weight:300;
+  color:var(--silver);
+  line-height:1.6;
+}
+
+.onboard-caveat {
+  font-family:'Crimson Pro', serif;
+  font-size:.82rem;
+  font-style:italic;
+  color:var(--silver-2);
+  text-align:center;
+  line-height:1.7;
+  max-width:360px;
+}
+
+/* ============================================================
    PAGE 1 — INPUT
    ============================================================ */
 #page-input { justify-content:center; padding-top:60px; }
@@ -221,7 +274,6 @@ p.body-text.left { text-align:left; }
   display:block;
 }
 
-/* Signal form */
 .signal-form {
   width:100%;
   background: linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
@@ -259,63 +311,31 @@ p.body-text.left { text-align:left; }
 
 .form-divider { border:none; border-top:1px solid var(--silver-3); margin:4px 0; }
 
-/* Sliders */
 .slider-stack { display:flex; flex-direction:column; gap:14px; }
 .slider-row { display:grid; grid-template-columns:72px 1fr 72px; align-items:center; gap:10px; }
 .sl-l { text-align:right; font-size:.75rem; color:var(--silver-2); }
 .sl-r { text-align:left;  font-size:.75rem; color:var(--silver-2); }
 input[type="range"] {
-  -webkit-appearance:none;
-  appearance:none;
-  width:100%;
-  height:2px;
-  border-radius:99px;
-  background:rgba(201,169,110,.55);
-  outline:none;
-  cursor:pointer;
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:2px; border-radius:99px;
+  background:rgba(201,169,110,.55); outline:none; cursor:pointer;
 }
-
-input[type="range"]::-webkit-slider-runnable-track {
-  height:2px;
-  border-radius:99px;
-  background:rgba(201,169,110,.55);
-}
-
-input[type="range"]::-moz-range-track {
-  height:2px;
-  border-radius:99px;
-  background:rgba(201,169,110,.55);
-}
-
+input[type="range"]::-webkit-slider-runnable-track { height:2px; border-radius:99px; background:rgba(201,169,110,.55); }
+input[type="range"]::-moz-range-track { height:2px; border-radius:99px; background:rgba(201,169,110,.55); }
 input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance:none;
-  appearance:none;
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  background:var(--gold);
-  box-shadow:0 0 0 3px rgba(201,169,110,.2);
-  border:none;
-  margin-top:-7px;
-  cursor:pointer;
-  transition:transform var(--tr-fast);
+  -webkit-appearance:none; appearance:none;
+  width:16px; height:16px; border-radius:50%;
+  background:var(--gold); box-shadow:0 0 0 3px rgba(201,169,110,.2);
+  border:none; margin-top:-7px; cursor:pointer; transition:transform var(--tr-fast);
 }
-
 input[type="range"]::-moz-range-thumb {
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  background:var(--gold);
-  box-shadow:0 0 0 3px rgba(201,169,110,.2);
-  border:none;
-  cursor:pointer;
-  transition:transform var(--tr-fast);
+  width:16px; height:16px; border-radius:50%;
+  background:var(--gold); box-shadow:0 0 0 3px rgba(201,169,110,.2);
+  border:none; cursor:pointer; transition:transform var(--tr-fast);
 }
-
 input[type="range"]::-webkit-slider-thumb:hover { transform:scale(1.2); }
 input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
-/* Value chips */
 .chip-row { display:flex; flex-wrap:wrap; gap:7px; }
 .vchip {
   cursor:pointer; padding:6px 14px; border-radius:var(--r-pill);
@@ -326,7 +346,6 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 .vchip:hover { border-color:var(--gold); color:var(--gold); }
 .vchip.on { background:var(--gold); border-color:var(--gold); color:var(--ink); font-weight:500; }
 .chip-hint { font-size:.7rem; color:var(--silver-2); opacity:.6; }
-
 .form-error { font-size:.78rem; color:var(--rose); text-align:center; display:none; }
 
 /* ============================================================
@@ -336,12 +355,8 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
 .interp-glyph {
   font-family:'Crimson Pro', serif;
-  font-size:3rem;
-  font-style:italic;
-  color:var(--gold);
-  opacity:.5;
-  text-align:center;
-  line-height:1;
+  font-size:3rem; font-style:italic;
+  color:var(--gold); opacity:.5; text-align:center; line-height:1;
 }
 
 .reading-card {
@@ -350,287 +365,279 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
   border:1px solid rgba(201,169,110,.25);
   border-radius:var(--r-card);
   padding:28px 24px;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
+  display:flex; flex-direction:column; gap:18px;
 }
-.reading-block {}
 .reading-block-label {
   font-family:'Cinzel', serif;
-  font-size:.56rem;
-  letter-spacing:.25em;
-  text-transform:uppercase;
-  color:var(--gold);
-  opacity:.55;
-  margin-bottom:7px;
-  display:block;
+  font-size:.56rem; letter-spacing:.25em; text-transform:uppercase;
+  color:var(--gold); opacity:.55; margin-bottom:7px; display:block;
 }
 .reading-text {
   font-family:'Crimson Pro', serif;
-  font-size:1rem;
-  font-weight:300;
-  font-style:italic;
-  color:rgba(255,255,255,.8);
-  line-height:1.75;
+  font-size:1rem; font-weight:300; font-style:italic;
+  color:rgba(255,255,255,.8); line-height:1.75;
 }
 
-/* Tension bars */
 .tension-set { display:flex; flex-direction:column; gap:11px; }
-.tension-item {}
-.tension-poles {
-  display:flex; justify-content:space-between;
-  font-size:.72rem; color:var(--silver-2); margin-bottom:5px;
-}
-.tension-track {
-  height:3px; background:var(--silver-3); border-radius:99px; overflow:hidden;
-}
-.tension-fill {
-  height:100%; border-radius:99px;
-  background:linear-gradient(90deg, var(--gold), var(--gold-2));
-  transition:width 1.2s cubic-bezier(.4,0,.2,1);
-}
+.tension-poles { display:flex; justify-content:space-between; font-size:.72rem; color:var(--silver-2); margin-bottom:5px; }
+.tension-track { height:3px; background:var(--silver-3); border-radius:99px; overflow:hidden; }
+.tension-fill { height:100%; border-radius:99px; background:linear-gradient(90deg, var(--gold), var(--gold-2)); transition:width 1.2s cubic-bezier(.4,0,.2,1); }
 
-/* Emphasis chips */
 .emph-set { display:flex; flex-wrap:wrap; gap:7px; }
-.emph-chip {
-  padding:5px 12px; border-radius:var(--r-pill);
-  font-size:.72rem; font-weight:400;
-  border:1px solid var(--silver-3); color:var(--silver-2);
-}
+.emph-chip { padding:5px 12px; border-radius:var(--r-pill); font-size:.72rem; font-weight:400; border:1px solid var(--silver-3); color:var(--silver-2); }
 .emph-chip.gold { border-color:rgba(201,169,110,.4); color:var(--gold); background:rgba(201,169,110,.07); }
 .emph-chip.teal { border-color:rgba(94,158,149,.4); color:var(--teal); background:rgba(94,158,149,.07); }
 .emph-chip.rose { border-color:rgba(184,112,112,.4); color:var(--rose); background:rgba(184,112,112,.07); }
 
 .begin-hint {
+  font-family:'Cinzel', serif; font-size:.6rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--silver-2); text-align:center; opacity:.5;
+}
+
+/* ============================================================
+   PAGE — LOADING / DISPATCH
+   ============================================================ */
+#page-loading {
+  justify-content:center;
+  align-items:center;
+  gap:32px;
+  padding-top:0;
+}
+
+.dispatch-container {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:28px;
+  width:100%;
+  max-width:380px;
+}
+
+.dispatch-orb {
+  width:80px; height:80px;
+  border-radius:50%;
+  border:1px solid rgba(201,169,110,.3);
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+}
+.dispatch-orb::before {
+  content:'';
+  position:absolute; inset:-8px;
+  border-radius:50%;
+  border:1px solid rgba(201,169,110,.1);
+  animation:orbPulse 2s ease-in-out infinite;
+}
+.dispatch-orb::after {
+  content:'';
+  position:absolute; inset:-16px;
+  border-radius:50%;
+  border:1px solid rgba(201,169,110,.05);
+  animation:orbPulse 2s .4s ease-in-out infinite;
+}
+@keyframes orbPulse {
+  0%,100% { transform:scale(1); opacity:1; }
+  50% { transform:scale(1.08); opacity:.5; }
+}
+.dispatch-icon {
+  font-size:2rem;
+  animation:iconFloat 3s ease-in-out infinite alternate;
+}
+@keyframes iconFloat {
+  from { transform:translateY(0); }
+  to { transform:translateY(-4px); }
+}
+
+.dispatch-log {
+  width:100%;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--silver-3);
+  border-radius:var(--r-card);
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.log-line {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  opacity:0;
+  transform:translateY(6px);
+  transition:opacity .5s ease, transform .5s ease;
+}
+.log-line.visible {
+  opacity:1;
+  transform:translateY(0);
+}
+.log-dot {
+  width:6px; height:6px;
+  border-radius:50%;
+  background:var(--silver-3);
+  flex-shrink:0;
+  transition:background .3s ease;
+}
+.log-dot.active { background:var(--gold); box-shadow:0 0 6px rgba(201,169,110,.5); }
+.log-dot.done { background:var(--teal); }
+.log-text {
   font-family:'Cinzel', serif;
   font-size:.6rem;
-  letter-spacing:.2em;
+  letter-spacing:.14em;
   text-transform:uppercase;
   color:var(--silver-2);
-  text-align:center;
-  opacity:.5;
 }
+.log-text.active { color:var(--gold); }
+.log-text.done { color:var(--silver-2); }
+
+.dispatch-status {
+  font-family:'Crimson Pro', serif;
+  font-size:.95rem;
+  font-style:italic;
+  color:var(--silver-2);
+  text-align:center;
+  line-height:1.7;
+  animation:statusFade 3s ease-in-out infinite;
+}
+@keyframes statusFade { 0%,100%{opacity:.5;} 50%{opacity:.9;} }
 
 /* ============================================================
    PAGE 3 — CARD DECK
    ============================================================ */
 #page-sim {
-  padding:30px 0 60px;
-  gap:0;
-  align-items:center;
-  justify-content:flex-start;
+  padding:30px 0 60px; gap:0;
+  align-items:center; justify-content:flex-start;
 }
 
-/* Card counter label */
 .card-counter {
-  font-family:'Cinzel', serif;
-  font-size:.58rem;
-  letter-spacing:.28em;
-  text-transform:uppercase;
-  color:var(--gold);
-  opacity:.5;
-  text-align:center;
-  padding-top:10px;
-  padding-bottom:16px;
+  font-family:'Cinzel', serif; font-size:.58rem; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--gold); opacity:.5;
+  text-align:center; padding-top:10px; padding-bottom:16px;
 }
 
-/* ── 3D flip container ── */
 .card-scene {
-  width:calc(100% - 48px);
-  max-width:400px;
-  /* Tall card — portrait proportion */
-  aspect-ratio:.62;
-  perspective:1200px;
-  cursor:pointer;
-  position:relative;
-  /* center the card */
-  margin:0 auto;
+  width:calc(100% - 48px); max-width:400px;
+  aspect-ratio:.58;
+  perspective:1200px; cursor:pointer; position:relative; margin:0 auto;
 }
 
-/* The card that flips */
 .card-3d {
-  width:100%; height:100%;
-  position:relative;
+  width:100%; height:100%; position:relative;
   transform-style:preserve-3d;
   transition:transform .7s cubic-bezier(.4,0,.2,1);
 }
 .card-3d.flipped { transform:rotateY(180deg); }
 
-/* Shared face styles */
 .card-face {
   position:absolute; inset:0;
   border-radius:var(--r-card);
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
-  overflow:hidden;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden; overflow:hidden;
 }
 
-/* ── CARD FRONT ── */
 .card-front {
   background:var(--ink-2);
   border:1px solid rgba(201,169,110,.22);
   display:flex; flex-direction:column;
   align-items:center; justify-content:space-between;
   padding:28px 22px;
-  box-shadow:
-    0 2px 0 rgba(201,169,110,.12),
-    0 24px 60px rgba(0,0,0,.6),
-    inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow:0 2px 0 rgba(201,169,110,.12),0 24px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
 }
 
-/* Scene illustration fills the middle */
 .card-scene-art {
   position:absolute; inset:0; z-index:0;
-  overflow:hidden;
-  border-radius:var(--r-card);
+  overflow:hidden; border-radius:var(--r-card);
 }
-/* Overlay fade so text is always legible */
 .card-scene-art::after {
-  content:'';
-  position:absolute; inset:0;
-  background:linear-gradient(
-    180deg,
-    rgba(10,11,14,.6) 0%,
-    rgba(10,11,14,.1) 30%,
-    rgba(10,11,14,.1) 60%,
-    rgba(10,11,14,.8) 100%
-  );
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(10,11,14,.6) 0%,rgba(10,11,14,.1) 30%,rgba(10,11,14,.1) 60%,rgba(10,11,14,.8) 100%);
 }
 
-/* All text sits above art */
 .card-front-top,
 .card-front-bottom { position:relative; z-index:1; text-align:center; }
-
 .card-front-top { padding-top:4px; }
 
 .card-snapshot-label {
-  font-family:'Cinzel', serif;
-  font-size:.55rem;
-  letter-spacing:.3em;
-  text-transform:uppercase;
-  color:var(--gold);
-  opacity:.7;
-  display:block;
-  margin-bottom:6px;
+  font-family:'Cinzel', serif; font-size:.55rem; letter-spacing:.3em;
+  text-transform:uppercase; color:var(--gold); opacity:.7; display:block; margin-bottom:6px;
 }
 .card-snapshot-num {
-  font-family:'Cinzel', serif;
-  font-size:.78rem;
-  letter-spacing:.16em;
-  color:rgba(255,255,255,.4);
+  font-family:'Cinzel', serif; font-size:.78rem; letter-spacing:.16em; color:rgba(255,255,255,.4);
 }
 
 .card-front-bottom { padding-bottom:8px; }
 .card-atmospheric-title {
-  font-family:'Crimson Pro', serif;
-  font-size:1.3rem;
-  font-weight:300;
-  font-style:italic;
-  color:rgba(255,255,255,.88);
-  line-height:1.3;
-  margin-bottom:16px;
+  font-family:'Crimson Pro', serif; font-size:1.3rem; font-weight:300;
+  font-style:italic; color:rgba(255,255,255,.88); line-height:1.3; margin-bottom:16px;
 }
 .card-tap-hint {
-  font-family:'Cinzel', serif;
-  font-size:.54rem;
-  letter-spacing:.28em;
-  text-transform:uppercase;
-  color:var(--gold);
-  opacity:.5;
-  /* pulse */
+  font-family:'Cinzel', serif; font-size:.54rem; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--gold); opacity:.5;
   animation:tapPulse 2.4s ease-in-out infinite;
 }
 @keyframes tapPulse { 0%,100%{opacity:.3;} 50%{opacity:.65;} }
 
-/* Decorative ornament */
 .card-ornament {
-  position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  width:120px; height:120px;
-  border-radius:50%;
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:120px; height:120px; border-radius:50%;
   border:1px solid rgba(201,169,110,.08);
   box-shadow:0 0 40px rgba(201,169,110,.05);
-  z-index:0;
-  pointer-events:none;
+  z-index:0; pointer-events:none;
 }
 .card-ornament::before {
-  content:'';
-  position:absolute; inset:12px;
-  border-radius:50%;
+  content:''; position:absolute; inset:12px; border-radius:50%;
   border:1px solid rgba(201,169,110,.06);
 }
 
-/* ── CARD BACK ── */
+/* Card back — taller, more room for text */
 .card-back {
   background:var(--ink-2);
   border:1px solid rgba(201,169,110,.22);
   transform:rotateY(180deg);
-  display:flex; flex-direction:column;
-  padding:0;
-  box-shadow:
-    0 2px 0 rgba(201,169,110,.12),
-    0 24px 60px rgba(0,0,0,.6),
-    inset 0 1px 0 rgba(255,255,255,.06);
+  display:flex; flex-direction:column; padding:0;
+  box-shadow:0 2px 0 rgba(201,169,110,.12),0 24px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
   overflow-y:auto;
 }
 
-/* Thin accent bar */
 .card-back-accent { height:3px; width:100%; flex-shrink:0; }
 
 .card-back-inner {
-  padding:22px 20px 20px;
-  display:flex; flex-direction:column; gap:16px;
+  padding:18px 18px 18px;
+  display:flex; flex-direction:column; gap:12px;
   flex:1;
 }
 
 .card-back-badge {
-  display:flex; align-items:center; justify-content:space-between;
-  flex-wrap:wrap; gap:6px;
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;
 }
 .card-back-badge-label {
-  font-family:'Cinzel', serif;
-  font-size:.56rem;
-  letter-spacing:.22em;
-  text-transform:uppercase;
-  color:var(--silver-2);
+  font-family:'Cinzel', serif; font-size:.56rem; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--silver-2);
 }
 .card-back-num {
-  font-family:'Cinzel', serif;
-  font-size:.56rem;
-  letter-spacing:.14em;
-  color:var(--silver-2);
-  background:var(--silver-4);
-  border:1px solid var(--silver-3);
-  border-radius:var(--r-pill);
-  padding:3px 9px;
+  font-family:'Cinzel', serif; font-size:.56rem; letter-spacing:.14em;
+  color:var(--silver-2); background:var(--silver-4);
+  border:1px solid var(--silver-3); border-radius:var(--r-pill); padding:3px 9px;
 }
 
 .card-back-title {
-  font-family:'Cinzel', serif;
-  font-size:1.05rem;
-  font-weight:400;
-  letter-spacing:.06em;
-  color:rgba(255,255,255,.92);
-  line-height:1.25;
+  font-family:'Cinzel', serif; font-size:.95rem; font-weight:400;
+  letter-spacing:.06em; color:rgba(255,255,255,.92); line-height:1.25;
 }
 
-.card-vignette {
-  font-family:'Crimson Pro', serif;
-  font-size:.95rem;
-  font-weight:300;
-  color:var(--silver);
-  line-height:1.8;
+.card-signal {
+  font-family:'Crimson Pro', serif; font-size:.82rem; font-style:italic;
+  color:var(--gold); opacity:.75; line-height:1.3;
 }
 
-/* Tradeoff pills */
+.card-finding {
+  font-family:'Crimson Pro', serif; font-size:.9rem; font-weight:300;
+  color:var(--silver); line-height:1.8;
+}
+
 .tradeoff-set { display:flex; flex-wrap:wrap; gap:7px; }
 .t-pill {
   display:flex; align-items:center; gap:7px;
-  padding:5px 11px 5px 8px;
-  border-radius:var(--r-pill);
-  border:1px solid var(--silver-3);
-  background:var(--silver-4);
+  padding:5px 11px 5px 8px; border-radius:var(--r-pill);
+  border:1px solid var(--silver-3); background:var(--silver-4);
 }
 .t-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
 .t-dot.low    { background:#b87070; box-shadow:0 0 5px #b87070; }
@@ -642,51 +649,28 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 .t-lvl.medium { color:#c9a96e; }
 .t-lvl.high   { color:#5e9e95; }
 
-/* Reflection */
 .reflection-block { padding-top:4px; }
-.refl-q {
-  font-family:'Crimson Pro', serif;
-  font-size:.9rem;
-  font-style:italic;
-  color:var(--silver-2);
-  margin-bottom:10px;
-}
+.refl-q { font-family:'Crimson Pro', serif; font-size:.9rem; font-style:italic; color:var(--silver-2); margin-bottom:10px; }
 .rating-row { display:flex; gap:7px; }
 .r-btn {
   width:34px; height:34px; border-radius:50%;
   border:1px solid var(--silver-3); background:transparent;
   font-family:'Outfit', sans-serif; font-size:.8rem;
-  color:var(--silver-2); cursor:pointer;
-  transition:all var(--tr-fast);
+  color:var(--silver-2); cursor:pointer; transition:all var(--tr-fast);
   display:flex; align-items:center; justify-content:center;
 }
 .r-btn:hover { border-color:var(--gold); color:var(--gold); }
 .r-btn.sel { background:var(--gold); border-color:var(--gold); color:var(--ink); font-weight:600; }
 
-/* Next card button */
-.card-next-row {
-  display:flex; justify-content:center;
-  padding:16px 0 4px;
-}
+.card-next-row { display:flex; justify-content:center; padding:16px 0 4px; }
 .card-next-btn {
-  background:transparent;
-  border:1px solid rgba(201,169,110,.35);
-  border-radius:var(--r-pill);
-  padding:11px 28px;
-  font-family:'Cinzel', serif;
-  font-size:.62rem;
-  letter-spacing:.2em;
-  text-transform:uppercase;
-  color:var(--gold);
-  cursor:pointer;
-  transition:all var(--tr-med);
+  background:transparent; border:1px solid rgba(201,169,110,.35);
+  border-radius:var(--r-pill); padding:11px 28px;
+  font-family:'Cinzel', serif; font-size:.62rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--gold); cursor:pointer; transition:all var(--tr-med);
 }
-.card-next-btn:hover {
-  background:var(--gold-dim);
-  border-color:rgba(201,169,110,.6);
-}
+.card-next-btn:hover { background:var(--gold-dim); border-color:rgba(201,169,110,.6); }
 
-/* Deck entrance animation */
 @keyframes cardDraw {
   from { opacity:0; transform:translateY(30px) scale(.97); }
   to   { opacity:1; transform:translateY(0) scale(1); }
@@ -694,30 +678,14 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 .card-scene { animation:cardDraw .55s cubic-bezier(.4,0,.2,1) both; }
 
 /* ============================================================
-   SCENE ILLUSTRATIONS (CSS-only, inside card fronts)
-   One per card.
+   SCENE ILLUSTRATIONS
    ============================================================ */
-
-/* ── Scene 1: Dawn window ── */
-.scene-dawn {
-  background:linear-gradient(180deg, #131b2a 0%, #1e3050 35%, #d4875a 75%, #e8b07a 100%);
-}
-.sc-sun {
-  position:absolute; bottom:42%; left:50%; transform:translateX(-50%);
-  width:50px; height:25px; border-radius:50px 50px 0 0;
-  background:radial-gradient(circle at 50% 100%, #fde68a, #f59e0b 50%, transparent 80%);
-  box-shadow:0 0 35px 12px rgba(251,191,36,.3), 0 0 70px 25px rgba(251,191,36,.1);
-  animation:sunrise 4s ease-out both;
-}
+.scene-dawn { background:linear-gradient(180deg, #131b2a 0%, #1e3050 35%, #d4875a 75%, #e8b07a 100%); }
+.sc-sun { position:absolute; bottom:42%; left:50%; transform:translateX(-50%); width:50px; height:25px; border-radius:50px 50px 0 0; background:radial-gradient(circle at 50% 100%, #fde68a, #f59e0b 50%, transparent 80%); box-shadow:0 0 35px 12px rgba(251,191,36,.3), 0 0 70px 25px rgba(251,191,36,.1); animation:sunrise 4s ease-out both; }
 @keyframes sunrise { from{bottom:35%;opacity:.2;} to{bottom:42%;opacity:1;} }
 .sc-horizon { position:absolute; width:100%; height:45px; bottom:40%; background:linear-gradient(180deg,transparent,rgba(232,140,80,.25),transparent); filter:blur(8px); }
 .sc-ground { position:absolute; bottom:0; width:100%; height:42%; background:linear-gradient(180deg,#150e08,#0a0703); }
-.sc-window {
-  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
-  width:130px; height:55%;
-  border:2px solid rgba(255,255,255,.07); border-bottom:none;
-  border-radius:65px 65px 0 0;
-}
+.sc-window { position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:130px; height:55%; border:2px solid rgba(255,255,255,.07); border-bottom:none; border-radius:65px 65px 0 0; }
 .sc-window::before { content:''; position:absolute; top:50%; left:0; right:0; height:1px; background:rgba(255,255,255,.07); }
 .sc-window::after  { content:''; position:absolute; top:0; bottom:0; left:50%; width:1px; background:rgba(255,255,255,.07); }
 .sc-bird { position:absolute; width:12px; height:5px; border-top:1.5px solid rgba(255,255,255,.4); border-radius:50% 50% 0 0; }
@@ -729,10 +697,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 .sc-star{position:absolute;width:2px;height:2px;border-radius:50%;background:white;}
 .sc-stars{position:absolute;inset:0;}
 
-/* ── Scene 2: Warm café ── */
-.scene-cafe {
-  background:linear-gradient(180deg,#0e0906 0%,#1a1007 40%,#241508 80%,#141005 100%);
-}
+.scene-cafe { background:linear-gradient(180deg,#0e0906 0%,#1a1007 40%,#241508 80%,#141005 100%); }
 .sc-pendant{position:absolute;}
 .sc-cord{width:1px;background:rgba(255,255,255,.13);margin:0 auto;}
 .sc-bulb{width:22px;height:26px;border-radius:50% 50% 40% 40%;background:radial-gradient(ellipse at 40% 35%,#fff9c4,#f59e0b 55%,#92400e);margin:0 auto;box-shadow:0 0 16px 7px rgba(245,158,11,.4),0 0 45px 18px rgba(245,158,11,.14);animation:flicker 7s ease-in-out infinite;}
@@ -752,10 +717,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 .sc-per2{right:20%;} .sc-per2 .sc-ph{width:16px;height:16px;} .sc-per2 .sc-pb{width:23px;height:28px;}
 .sc-floorglow{position:absolute;bottom:0;width:100%;height:55px;background:linear-gradient(180deg,transparent,rgba(245,158,11,.05));}
 
-/* ── Scene 3: Night coast ── */
-.scene-coast {
-  background:linear-gradient(180deg,#0c1a28 0%,#152336 25%,#1a3048 50%,#0e2030 75%,#081520 100%);
-}
+.scene-coast { background:linear-gradient(180deg,#0c1a28 0%,#152336 25%,#1a3048 50%,#0e2030 75%,#081520 100%); }
 .sc-moon{position:absolute;top:16%;right:14%;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 33% 33%,#fffde7,#fde68a 60%,#d4a96a);box-shadow:0 0 22px 7px rgba(212,169,106,.22),0 0 55px 18px rgba(212,169,106,.07);animation:moonglow 5s ease-in-out infinite alternate;}
 @keyframes moonglow{from{box-shadow:0 0 22px 7px rgba(212,169,106,.22);}to{box-shadow:0 0 32px 12px rgba(212,169,106,.32),0 0 75px 28px rgba(212,169,106,.1);}}
 .sc-moonrefl{position:absolute;bottom:32%;right:calc(14% + 1px);width:4px;height:55px;background:linear-gradient(180deg,rgba(212,169,106,.45),transparent);border-radius:99px;filter:blur(3px);animation:refl 2.8s ease-in-out infinite alternate;}
@@ -775,19 +737,16 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 .sc-cstars{position:absolute;inset:0;}
 
 /* ============================================================
-   PAGE 4 — MICRO-COMMITMENT
+   PAGE 4 — AGENT RECOMMENDATIONS
    ============================================================ */
 #page-commitment { padding-top:50px; }
 
 .commitment-grid { width:100%; display:flex; flex-direction:column; gap:12px; }
 
 .commit-card {
-  cursor:pointer;
-  padding:20px;
-  background:var(--silver-4);
-  border:1.5px solid var(--silver-3);
-  border-radius:var(--r-card);
-  transition:all var(--tr-med);
+  cursor:pointer; padding:20px;
+  background:var(--silver-4); border:1.5px solid var(--silver-3);
+  border-radius:var(--r-card); transition:all var(--tr-med);
   display:flex; align-items:flex-start; gap:14px;
 }
 .commit-card:hover { background:rgba(201,169,110,.06); border-color:rgba(201,169,110,.3); }
@@ -809,8 +768,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 #page-confirm { padding-top:80px; justify-content:center; }
 
 .confirm-glyph {
-  font-size:2.2rem;
-  text-align:center;
+  font-size:2.2rem; text-align:center;
   animation:glyphPulse 3s ease-in-out infinite alternate;
   filter:drop-shadow(0 0 12px rgba(201,169,110,.4));
 }
@@ -820,47 +778,23 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
   width:100%;
   background:linear-gradient(145deg, rgba(201,169,110,.08), rgba(201,169,110,.02));
   border:1px solid rgba(201,169,110,.3);
-  border-radius:var(--r-card);
-  padding:28px 24px;
-  text-align:center;
-  display:flex; flex-direction:column; gap:14px;
+  border-radius:var(--r-card); padding:28px 24px;
+  text-align:center; display:flex; flex-direction:column; gap:14px;
 }
 .chosen-commitment-name {
-  font-family:'Cinzel', serif;
-  font-size:.82rem;
-  letter-spacing:.08em;
-  color:var(--gold);
-  padding:10px 16px;
-  background:rgba(201,169,110,.08);
-  border:1px solid rgba(201,169,110,.2);
-  border-radius:var(--r-sm);
+  font-family:'Cinzel', serif; font-size:.82rem; letter-spacing:.08em;
+  color:var(--gold); padding:10px 16px;
+  background:rgba(201,169,110,.08); border:1px solid rgba(201,169,110,.2); border-radius:var(--r-sm);
 }
 .continuation-text {
-  font-family:'Crimson Pro', serif;
-  font-size:.95rem;
-  font-style:italic;
-  color:var(--silver-2);
-  line-height:1.75;
+  font-family:'Crimson Pro', serif; font-size:.95rem; font-style:italic;
+  color:var(--silver-2); line-height:1.75;
 }
 
-/* Loop diagram */
-.loop-diagram {
-  display:flex; align-items:center; justify-content:center;
-  gap:8px; flex-wrap:wrap;
-}
-.loop-node {
-  font-family:'Cinzel', serif;
-  font-size:.56rem;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  color:var(--gold);
-  opacity:.6;
-}
+.loop-diagram { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
+.loop-node { font-family:'Cinzel', serif; font-size:.56rem; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); opacity:.6; }
 .loop-arrow { color:var(--gold); opacity:.3; font-size:.75rem; }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
 @media (max-width: 420px) {
   .card-scene { width:calc(100% - 32px); }
   .signal-form { padding:20px 16px; }
@@ -873,32 +807,87 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 <div class="app">
 
   <!-- ═══════════════════════════════════════════════
+       PAGE 0 — ONBOARDING
+       ═══════════════════════════════════════════════ -->
+  <div class="page active" id="page-onboard">
+
+    <div style="height:20px"></div>
+
+    <div class="onboard-glyph">✦</div>
+
+    <div style="text-align:center;">
+      <span style="font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);opacity:.6;display:block;margin-bottom:14px;">What is ALTER</span>
+      <h1 class="ritual-title">A<em>lt</em>er</h1>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="body-text" style="font-size:.95rem;max-width:360px;">
+      ALTER sends an AI agent to live in the future you're imagining.<br/>
+      It comes back and tells you what it found.
+    </p>
+
+    <div class="onboard-steps">
+      <div class="onboard-step">
+        <div class="onboard-step-num">01</div>
+        <div class="onboard-step-body">
+          <div class="onboard-step-title">Describe your manifestation</div>
+          <div class="onboard-step-desc">Tell ALTER what future you're moving toward — a city, a career, a way of living. The more specific, the more grounded the report.</div>
+        </div>
+      </div>
+      <div class="onboard-step">
+        <div class="onboard-step-num">02</div>
+        <div class="onboard-step-body">
+          <div class="onboard-step-title">Your agent is dispatched</div>
+          <div class="onboard-step-desc">ALTER sends an AI agent to live that future for three days. It experiences it from the inside — the routines, the people, the costs, the friction.</div>
+        </div>
+      </div>
+      <div class="onboard-step">
+        <div class="onboard-step-num">03</div>
+        <div class="onboard-step-body">
+          <div class="onboard-step-title">The agent reports back</div>
+          <div class="onboard-step-desc">You receive three field reports and one concrete action to test whether this future is actually right for you.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="onboard-caveat">
+      This is not prediction. It is exploration.<br/>
+      Your ritual, backed by evidence.
+    </p>
+
+    <button class="btn-ritual" onclick="goTo('page-input')"><span>Begin Your Reading →</span></button>
+
+  </div><!-- /page-onboard -->
+
+
+  <!-- ═══════════════════════════════════════════════
        PAGE 1 — INPUT
        ═══════════════════════════════════════════════ -->
-  <div class="page active" id="page-input">
+  <div class="page" id="page-input">
 
     <div style="height:20px"></div>
 
     <div class="input-header">
-      <span class="eyebrow">Exploring Your Possible Futures</span>
+      <span class="eyebrow">Briefing Your Agent</span>
       <h1 class="ritual-title">A<em>lt</em>er</h1>
     </div>
 
     <div class="divider"></div>
 
     <p class="body-text" style="font-size:.95rem;max-width:340px;">
-      Before your futures are drawn, calibrate your identity values.
+      Your agent needs to know what to look for.<br/>Answer honestly.
     </p>
 
     <div class="signal-form">
 
       <div class="field">
-        <span class="field-label">The change you moving towards</span>
-        <input type="text" id="inp-change" placeholder="e.g. Moving abroad, going freelance, returning to study…"/>
+        <span class="field-label">The future you want to manifest</span>
+        <input type="text" id="inp-change" placeholder="e.g. Moving to Lisbon and working freelance…"/>
       </div>
 
       <div class="field">
-        <span class="field-label">What do you want more of</span>
+        <span class="field-label">What you want more of</span>
         <input type="text" id="inp-more" placeholder="e.g. Freedom, aliveness, creative work…"/>
       </div>
 
@@ -908,14 +897,14 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
       </div>
 
       <div class="field">
-        <span class="field-label">What do you fear losing</span>
+        <span class="field-label">What you fear losing</span>
         <input type="text" id="inp-afraid" placeholder="e.g. Close friends, momentum, stability…"/>
       </div>
 
       <hr class="form-divider"/>
 
       <div>
-        <span class="field-label" style="display:block;margin-bottom:12px;">Weigh your current values</span>
+        <span class="field-label" style="display:block;margin-bottom:12px;">Your values spectrum</span>
         <div class="slider-stack">
           <div class="slider-row">
             <span class="sl-l">Stability</span>
@@ -954,7 +943,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
     <p class="form-error" id="form-error">Please complete all fields and select 2 values.</p>
 
-    <button class="btn-ritual" id="btn-begin"><span>Show Me The Future →</span></button>
+    <button class="btn-ritual" id="btn-begin"><span>Dispatch Your Agent →</span></button>
 
   </div><!-- /page-input -->
 
@@ -965,44 +954,86 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
   <div class="page" id="page-interp">
 
     <div style="height:10px"></div>
-    <div class="mark">Signal Reading</div>
-
+    <div class="mark">Agent Briefing</div>
     <div class="divider"></div>
-
     <div class="interp-glyph">✦</div>
 
-    <h2 class="section-title">ALTER reads you as…</h2>
+    <h2 class="section-title">Your agent has been briefed</h2>
 
     <div class="reading-card" id="reading-card">
 
       <div class="reading-block">
-        <span class="reading-block-label">Your signals reveal</span>
+        <span class="reading-block-label">What the agent is carrying</span>
         <p class="reading-text" id="reading-text">—</p>
       </div>
 
       <hr class="form-divider"/>
 
       <div class="reading-block">
-        <span class="reading-block-label">This reading will emphasise</span>
+        <span class="reading-block-label">The agent will pay attention to</span>
         <div class="emph-set" id="emph-set"></div>
       </div>
 
       <hr class="form-divider"/>
 
       <div class="reading-block">
-        <span class="reading-block-label">Your tendency spectrum</span>
+        <span class="reading-block-label">Your values spectrum</span>
         <div class="tension-set" id="tension-set"></div>
       </div>
 
     </div>
 
-    <p class="begin-hint">Three visions await</p>
+    <p class="begin-hint">Three field reports incoming</p>
 
-    <button class="btn-ritual" id="btn-draw"><span>Reveal the simulations →</span></button>
+    <button class="btn-ritual" id="btn-draw"><span>Send the Agent →</span></button>
 
-    <button class="btn-ghost" onclick="goTo('page-input')">← Revise signals</button>
+    <button class="btn-ghost" onclick="goTo('page-input')">← Revise briefing</button>
 
   </div><!-- /page-interp -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE — LOADING / DISPATCH
+       ═══════════════════════════════════════════════ -->
+  <div class="page" id="page-loading">
+
+    <div class="dispatch-container">
+
+      <div class="dispatch-orb">
+        <div class="dispatch-icon">✦</div>
+      </div>
+
+      <div style="text-align:center;">
+        <div class="mark" style="opacity:.9;margin-bottom:10px;">Agent Dispatched</div>
+        <p class="dispatch-status" id="dispatch-status">Living your future…</p>
+      </div>
+
+      <div class="dispatch-log" id="dispatch-log">
+        <div class="log-line" id="log-0">
+          <div class="log-dot" id="dot-0"></div>
+          <div class="log-text" id="txt-0">Arriving in your future</div>
+        </div>
+        <div class="log-line" id="log-1">
+          <div class="log-dot" id="dot-1"></div>
+          <div class="log-text" id="txt-1">Mapping daily rhythms</div>
+        </div>
+        <div class="log-line" id="log-2">
+          <div class="log-dot" id="dot-2"></div>
+          <div class="log-text" id="txt-2">Reading the social landscape</div>
+        </div>
+        <div class="log-line" id="log-3">
+          <div class="log-dot" id="dot-3"></div>
+          <div class="log-text" id="txt-3">Surfacing the real costs</div>
+        </div>
+        <div class="log-line" id="log-4">
+          <div class="log-dot" id="dot-4"></div>
+          <div class="log-text" id="txt-4">Preparing the report</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /page-loading -->
 
 
   <!-- ═══════════════════════════════════════════════
@@ -1010,57 +1041,48 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
        ═══════════════════════════════════════════════ -->
   <div class="page" id="page-sim">
 
-    <div class="mark" id="card-label">The Reading</div>
+    <div class="mark" id="card-label">Field Report</div>
+    <div class="card-counter" id="card-counter">Report I of III</div>
 
-    <div class="card-counter" id="card-counter">Snapshot I of III</div>
-
-    <!-- Card wrapper — content injected by JS -->
     <div class="card-scene" id="card-scene" onclick="handleCardTap()">
       <div class="card-3d" id="card-3d">
-        <div class="card-face card-front" id="card-front">
-          <!-- injected -->
-        </div>
-        <div class="card-face card-back" id="card-back">
-          <!-- injected -->
-        </div>
+        <div class="card-face card-front" id="card-front"></div>
+        <div class="card-face card-back" id="card-back"></div>
       </div>
     </div>
 
-    <!-- "Next card" row — shown only after flip -->
     <div class="card-next-row" id="card-next-row" style="display:none;">
-      <button class="card-next-btn" id="card-next-btn">Next Snapshot →</button>
+      <button class="card-next-btn" id="card-next-btn">Next Report →</button>
     </div>
 
-    <button class="btn-ghost" onclick="goTo('page-interp')">← Back to reading</button>
+    <button class="btn-ghost" onclick="goTo('page-interp')">← Back to briefing</button>
 
   </div><!-- /page-sim -->
 
 
   <!-- ═══════════════════════════════════════════════
-       PAGE 4 — MICRO-COMMITMENT
+       PAGE 4 — AGENT RECOMMENDATIONS
        ═══════════════════════════════════════════════ -->
   <div class="page" id="page-commitment">
 
     <div style="height:10px"></div>
-    <div class="mark">After the Vision</div>
+    <div class="mark">Agent Recommendations</div>
     <div class="divider"></div>
 
     <div style="text-align:center;">
-      <h2 class="section-title" style="margin-bottom:12px;">Choose one small action</h2>
+      <h2 class="section-title" style="margin-bottom:12px;">What the agent suggests</h2>
       <p class="body-text" style="font-size:.9rem;max-width:360px;">
-        Rather than deciding your entire future today,<br/>
-        test this path with one small action.<br/>
-        <em style="font-family:'Crimson Pro',serif;color:var(--gold);opacity:.8;">Tomorrow's cards will respond to what you choose.</em>
+        Based on what it found in your future,<br/>
+        your agent has identified three ways to test this path.<br/>
+        <em style="font-family:'Crimson Pro',serif;color:var(--gold);opacity:.8;">Choose the one that feels most urgent.</em>
       </p>
     </div>
 
-    <div class="commitment-grid" id="commitment-grid">
-      <!-- injected -->
-    </div>
+    <div class="commitment-grid" id="commitment-grid"></div>
 
-    <p class="form-error" id="commit-error">Please select one commitment to continue.</p>
+    <p class="form-error" id="commit-error">Please select one action to continue.</p>
 
-    <button class="btn-ritual" id="btn-commit"><span>Seal the Commitment →</span></button>
+    <button class="btn-ritual" id="btn-commit"><span>Commit to This →</span></button>
 
   </div><!-- /page-commitment -->
 
@@ -1070,11 +1092,9 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
        ═══════════════════════════════════════════════ -->
   <div class="page" id="page-confirm">
 
-    <div class="mark">Future Exploration Complete</div>
+    <div class="mark">Reading Complete</div>
     <div class="divider"></div>
-
     <div class="confirm-glyph">✦</div>
-
     <h2 class="section-title">Commitment Sealed</h2>
 
     <div class="confirm-card">
@@ -1082,21 +1102,23 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
       <p class="chosen-commitment-name" id="confirm-commit-name">—</p>
       <p class="continuation-text">
         This action becomes part of your trajectory.<br/>
-        Tomorrow's simulation will respond to what you did today.
+        Tomorrow's reading will respond to what you did today.
       </p>
     </div>
 
     <div class="loop-diagram">
-      <span class="loop-node">Simulation</span>
+      <span class="loop-node">Manifest</span>
       <span class="loop-arrow">→</span>
-      <span class="loop-node">Action</span>
+      <span class="loop-node">Dispatch</span>
       <span class="loop-arrow">→</span>
-      <span class="loop-node">New Simulation</span>
+      <span class="loop-node">Report</span>
+      <span class="loop-arrow">→</span>
+      <span class="loop-node">Act</span>
     </div>
 
     <p class="body-text" style="font-size:.85rem;max-width:340px;font-style:italic;">
-      This is the core loop of ALTER: you do not decide your future in one moment —
-      you test it, one small action at a time.
+      You do not decide your future in one moment.<br/>
+      You test it, one action at a time.
     </p>
 
     <button class="btn-ritual" onclick="restartReading()"><span>End Today's Reading</span></button>
@@ -1106,9 +1128,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 </div><!-- /app -->
 
 
-<!-- ══════════════════════════════
-     SCENE TEMPLATES
-     ══════════════════════════════ -->
+<!-- SCENE TEMPLATES -->
 <template id="tpl-scene-dawn">
   <div class="card-scene-art scene-dawn">
     <div class="sc-stars">
@@ -1167,13 +1187,14 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
 
 <script>
-let vals = [];
-let cardIdx = 0;
-let cardFlipped = false;
-let ratings = [null, null, null];
+// ── STATE ────────────────────────────────────────────────────
+let vals         = [];
+let cardIdx      = 0;
+let cardFlipped  = false;
+let ratings      = [null, null, null];
 let chosenCommit = null;
-let cards = [];
-let commits = [];
+let cards        = [];
+let commits      = [];
 
 let trajectoryState = {
   sourceCommit: null,
@@ -1183,57 +1204,11 @@ let trajectoryState = {
   emphasisAdd: [],
 };
 
-const SCENE_TPLS = ['tpl-scene-dawn', 'tpl-scene-cafe', 'tpl-scene-coast'];
-const ACCENTS = [
-  'linear-gradient(90deg,#c9a96e,#e8b87a)',
-  'linear-gradient(90deg,#c9a96e,#b87060)',
-  'linear-gradient(90deg,#5e9e95,#3e7e78)',
-];
-const FRONT_TITLES = [
-  'Morning in the new place',
-  'An evening among strangers',
-  'Sitting with the cost of it',
-];
-const INV_ROMAN = ['I', 'II', 'III'];
-
-const fv = (id) => document.getElementById(id).value.trim();
-
-function clamp(val, min, max) {
-  return Math.max(min, Math.min(max, val));
-}
-
-function titleCase(str) {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function fallbackReport(reason = 'Unknown error') {
-  console.error('Fallback report triggered:', reason);
-  return {
-    report_1: {
-      title: 'Day 1 — Daily Life',
-      finding: `The report could not be generated. Reason: ${reason}.`,
-      signal: 'Signal unclear',
-    },
-    report_2: {
-      title: 'Day 2 — Social World',
-      finding: `The report could not be generated. Reason: ${reason}.`,
-      signal: 'Signal unclear',
-    },
-    report_3: {
-      title: 'Day 3 — The Cost',
-      finding: `The report could not be generated. Reason: ${reason}.`,
-      signal: 'Signal unclear',
-    },
-    agent_recommendation: 'Try the simulation again after fixing the error.',
-  };
-}
-
+// ── NAVIGATION ───────────────────────────────────────────────
 function goTo(id) {
   const all = document.querySelectorAll('.page');
   const target = document.getElementById(id);
-
-  all.forEach((p) => {
+  all.forEach(p => {
     if (p.classList.contains('active')) {
       p.style.opacity = '0';
       p.style.transform = 'translateY(-14px)';
@@ -1244,23 +1219,21 @@ function goTo(id) {
       }, 400);
     }
   });
-
   setTimeout(() => {
     target.classList.add('active');
     target.classList.add('entering');
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => target.classList.remove('entering'));
-    });
+    requestAnimationFrame(() => requestAnimationFrame(() => target.classList.remove('entering')));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, 380);
 }
 
-document.querySelectorAll('.vchip').forEach((el) => {
+// ── VALUE CHIPS ──────────────────────────────────────────────
+document.querySelectorAll('.vchip').forEach(el => {
   el.addEventListener('click', () => {
     const v = el.dataset.v;
     if (el.classList.contains('on')) {
       el.classList.remove('on');
-      vals = vals.filter((x) => x !== v);
+      vals = vals.filter(x => x !== v);
     } else {
       if (vals.length >= 2) return;
       el.classList.add('on');
@@ -1271,195 +1244,178 @@ document.querySelectorAll('.vchip').forEach((el) => {
   });
 });
 
-function getTomorrowShiftFromCommit(commit) {
-  if (!commit) {
-    return {
-      sourceCommit: null,
-      effectLabel: 'No trajectory shift yet',
-      effectText: 'Tomorrow’s reading would stay close to today’s baseline signals.',
-      sliderDelta: { stab: 0, mast: 0, soc: 0 },
-      emphasisAdd: [],
-    };
+// ── HELPERS ──────────────────────────────────────────────────
+const fv = id => document.getElementById(id).value.trim();
+const INV_ROMAN = ['I', 'II', 'III'];
+function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+function titleCase(str) { if (!str) return ''; return str.charAt(0).toUpperCase() + str.slice(1); }
+
+const SCENE_TPLS = ['tpl-scene-dawn', 'tpl-scene-cafe', 'tpl-scene-coast'];
+const ACCENTS = [
+  'linear-gradient(90deg,#c9a96e,#e8b87a)',
+  'linear-gradient(90deg,#c9a96e,#b87060)',
+  'linear-gradient(90deg,#5e9e95,#3e7e78)',
+];
+const FRONT_TITLES = [
+  'A day in your future life',
+  'The people around you',
+  'What it actually costs',
+];
+
+// ── DISPATCH LOADING ANIMATION ───────────────────────────────
+function startDispatchAnimation() {
+  const messages = [
+    'Living your future…',
+    'Mapping the rhythms…',
+    'Reading the social world…',
+    'Finding the friction…',
+    'Writing the report…'
+  ];
+
+  let step = 0;
+  const statusEl = document.getElementById('dispatch-status');
+
+  // Reveal log lines progressively
+  function advanceLog() {
+    if (step >= 5) return;
+
+    // Mark previous as done
+    if (step > 0) {
+      document.getElementById(`dot-${step-1}`).className = 'log-dot done';
+      document.getElementById(`txt-${step-1}`).className = 'log-text done';
+    }
+
+    // Show current line
+    const line = document.getElementById(`log-${step}`);
+    const dot  = document.getElementById(`dot-${step}`);
+    const txt  = document.getElementById(`txt-${step}`);
+    if (line) {
+      line.classList.add('visible');
+      dot.className = 'log-dot active';
+      txt.className = 'log-text active';
+    }
+
+    if (statusEl && messages[step]) statusEl.textContent = messages[step];
+
+    step++;
+    if (step < 5) setTimeout(advanceLog, 900);
   }
+
+  // Reset all log lines first
+  for (let i = 0; i < 5; i++) {
+    const l = document.getElementById(`log-${i}`);
+    const d = document.getElementById(`dot-${i}`);
+    const t = document.getElementById(`txt-${i}`);
+    if (l) { l.classList.remove('visible'); }
+    if (d) d.className = 'log-dot';
+    if (t) t.className = 'log-text';
+  }
+
+  setTimeout(advanceLog, 300);
+}
+
+// ── TRAJECTORY LOGIC ─────────────────────────────────────────
+function getTomorrowShiftFromCommit(commit) {
+  if (!commit) return {
+    sourceCommit: null, effectLabel: 'No shift yet',
+    effectText: "Tomorrow's reading stays close to today's signals.",
+    sliderDelta: { stab: 0, mast: 0, soc: 0 }, emphasisAdd: []
+  };
 
   const title = commit.title.toLowerCase();
 
-  if (title.includes('morning anchor')) {
-    return {
-      sourceCommit: commit.title,
-      effectLabel: 'Ritual creates structure',
-      effectText: 'Repeating a self-owned ritual adds continuity. Tomorrow’s reading will slightly privilege grounded routines, steadier mood, and more livable forms of change.',
-      sliderDelta: { stab: -1, mast: 0, soc: 0 },
-      emphasisAdd: ['Grounding', 'Consistency'],
-    };
-  }
+  if (title.includes('morning') || title.includes('anchor') || title.includes('routine')) return {
+    sourceCommit: commit.title, effectLabel: 'Ritual creates structure',
+    effectText: "Repeating a self-owned ritual adds continuity. Tomorrow's reading will privilege grounded routines and steadier forms of change.",
+    sliderDelta: { stab: -1, mast: 0, soc: 0 }, emphasisAdd: ['Grounding', 'Consistency']
+  };
 
-  if (title.includes('calm test') || title.includes('calm')) {
-    return {
-      sourceCommit: commit.title,
-      effectLabel: 'Calm becomes a signal filter',
-      effectText: 'Because you chose to test calm directly, tomorrow’s cards will pay more attention to environments, rhythms, and relationships that lower internal friction.',
-      sliderDelta: { stab: -1, mast: 0, soc: 1 },
-      emphasisAdd: ['Calm', 'Lower friction'],
-    };
-  }
+  if (title.includes('belong') || title.includes('community') || title.includes('connect')) return {
+    sourceCommit: commit.title, effectLabel: 'Belonging becomes the lens',
+    effectText: "Tomorrow's reading will weight community cues, social fit, and where connection becomes easier.",
+    sliderDelta: { stab: -1, mast: 0, soc: -1 }, emphasisAdd: ['Belonging', 'Social fit']
+  };
 
-  if (title.includes('both/and')) {
-    return {
-      sourceCommit: commit.title,
-      effectLabel: 'Ambivalence becomes integrated',
-      effectText: 'Naming both desire and grief softens the reading’s extremes. Tomorrow’s cards will frame trade-offs with more emotional integration and less all-or-nothing tension.',
-      sliderDelta: { stab: 0, mast: 0, soc: 0 },
-      emphasisAdd: ['Integration', 'Emotional range'],
-    };
-  }
+  if (title.includes('financ') || title.includes('money') || title.includes('cost') || title.includes('income')) return {
+    sourceCommit: commit.title, effectLabel: 'Financial reality is tested',
+    effectText: "Tomorrow's reading will surface more concrete financial textures and what security actually requires.",
+    sliderDelta: { stab: -1, mast: -1, soc: 0 }, emphasisAdd: ['Financial clarity', 'Security']
+  };
 
-  if (title.includes('independence')) {
-    return {
-      sourceCommit: commit.title,
-      effectLabel: 'Independence is reinforced',
-      effectText: 'Testing independence nudges the next simulation toward self-authorship, experimentation, and more autonomous forms of daily life.',
-      sliderDelta: { stab: 1, mast: 1, soc: 1 },
-      emphasisAdd: ['Independence', 'Self-authorship'],
-    };
-  }
-
-  if (title.includes('belonging')) {
-    return {
-      sourceCommit: commit.title,
-      effectLabel: 'Belonging becomes the lens',
-      effectText: 'Because you chose to test belonging, tomorrow’s cards will more strongly weight community cues, social fit, and where connection becomes easier.',
-      sliderDelta: { stab: -1, mast: 0, soc: -1 },
-      emphasisAdd: ['Belonging', 'Social fit'],
-    };
-  }
-
-  if (title.includes('security')) {
-    return {
-      sourceCommit: commit.title,
-      effectLabel: 'Security is strengthened',
-      effectText: 'Testing security biases the next reading toward durability, predictability, and what helps the future feel more structurally safe.',
-      sliderDelta: { stab: -1, mast: -1, soc: 0 },
-      emphasisAdd: ['Security', 'Durability'],
-    };
-  }
-
-  if (title.includes('creativity')) {
-    return {
-      sourceCommit: commit.title,
-      effectLabel: 'Creativity is foregrounded',
-      effectText: 'Testing creativity biases the next reading toward experimentation, novelty, and forms of life that feel expressive rather than merely efficient.',
-      sliderDelta: { stab: 1, mast: 1, soc: 0 },
-      emphasisAdd: ['Creativity', 'Experiment'],
-    };
-  }
+  if (title.includes('creat') || title.includes('work') || title.includes('freelan') || title.includes('career')) return {
+    sourceCommit: commit.title, effectLabel: 'Creative work is foregrounded',
+    effectText: "Tomorrow's reading tilts toward what creative autonomy costs and delivers on a daily basis.",
+    sliderDelta: { stab: 1, mast: 1, soc: 0 }, emphasisAdd: ['Creative autonomy', 'Daily work']
+  };
 
   return {
-    sourceCommit: commit.title,
-    effectLabel: 'A small action changes the weighting',
-    effectText: 'Tomorrow’s reading would subtly shift toward whatever this action made more real in your life.',
-    sliderDelta: { stab: 0, mast: 0, soc: 0 },
-    emphasisAdd: ['Trajectory shift'],
+    sourceCommit: commit.title, effectLabel: 'A small action shifts the reading',
+    effectText: "Tomorrow's reading will subtly weight whatever this action made more real.",
+    sliderDelta: { stab: 0, mast: 0, soc: 0 }, emphasisAdd: ['Trajectory shift']
   };
 }
 
 function getBiasedSliders() {
-  const baseStab = +document.getElementById('sl-stab').value;
-  const baseMast = +document.getElementById('sl-mast').value;
-  const baseSoc = +document.getElementById('sl-soc').value;
-
   return {
-    stab: clamp(baseStab + trajectoryState.sliderDelta.stab, 1, 5),
-    mast: clamp(baseMast + trajectoryState.sliderDelta.mast, 1, 5),
-    soc: clamp(baseSoc + trajectoryState.sliderDelta.soc, 1, 5),
+    stab: clamp(+fv('sl-stab') + trajectoryState.sliderDelta.stab, 1, 5),
+    mast: clamp(+fv('sl-mast') + trajectoryState.sliderDelta.mast, 1, 5),
+    soc:  clamp(+fv('sl-soc')  + trajectoryState.sliderDelta.soc,  1, 5),
   };
 }
 
+// ── BUILD INTERPRETATION ─────────────────────────────────────
 function buildInterp() {
-  const biased = getBiasedSliders();
-  const stab = biased.stab;
-  const mast = biased.mast;
-  const soc = biased.soc;
-
-  const v1 = vals[0];
-  const v2 = vals[1];
+  const { stab, mast, soc } = getBiasedSliders();
+  const v1 = vals[0], v2 = vals[1];
   const afraid = fv('inp-afraid');
   const change = fv('inp-change');
 
-  const fTone =
-    stab >= 4
-      ? 'a strong gravitational pull toward freedom and open possibility'
-      : stab <= 2
-      ? 'a deep anchoring need for stability and familiar ground'
-      : 'a live tension between holding ground and releasing into the unknown';
+  const fTone = stab >= 4 ? 'a strong pull toward freedom and open possibility'
+              : stab <= 2 ? 'a deep need for stability and familiar ground'
+              : 'a live tension between holding ground and releasing into the unknown';
+  const mTone = mast >= 4 ? 'a preference for broad exploration over depth'
+              : mast <= 2 ? 'a drive toward mastery — depth over breadth'
+              : 'a balance between going deep and staying curious';
+  const sTone = soc <= 2 ? 'someone who draws life from other people and needs community'
+              : soc >= 4 ? 'someone who finds clarity in solitude'
+              : 'someone who moves between connection and quiet';
 
-  const mTone =
-    mast >= 4
-      ? 'a preference for broad exploration over specialised depth'
-      : mast <= 2
-      ? 'a drive toward mastery, depth over breadth, knowing over wandering'
-      : 'a balance between going deep and remaining curious';
-
-  const sTone =
-    soc <= 2
-      ? 'someone who draws life from other people and needs community to feel whole'
-      : soc >= 4
-      ? 'someone who finds clarity in solitude and recharges alone'
-      : 'someone who moves fluidly between connection and quiet';
-
-  const reading =
+  document.getElementById('reading-text').textContent =
     `${titleCase(sTone)}, with ${fTone} and ${mTone}. ` +
     `The values of ${v1} and ${v2} are directly implicated by ${change.toLowerCase() || 'this change'}. ` +
-    `The fear of losing ${afraid.toLowerCase() || 'what matters most'} will thread through all three cards. ` +
+    `The fear of losing ${afraid.toLowerCase() || 'what matters most'} will thread through every report. ` +
     `${trajectoryState.effectText || ''}`;
-
-  document.getElementById('reading-text').textContent = reading;
 
   const emphases = [];
   if (stab >= 4) emphases.push({ label: 'Freedom & openness', col: 'gold' });
   if (stab <= 2) emphases.push({ label: 'Stability & ground', col: 'teal' });
   if (mast >= 4) emphases.push({ label: 'Exploration', col: 'gold' });
   if (mast <= 2) emphases.push({ label: 'Mastery & depth', col: 'teal' });
-  if (soc <= 2) emphases.push({ label: 'Social belonging', col: 'teal' });
-  if (soc >= 4) emphases.push({ label: 'Solitary clarity', col: 'teal' });
+  if (soc <= 2)  emphases.push({ label: 'Social belonging', col: 'teal' });
+  if (soc >= 4)  emphases.push({ label: 'Solitary clarity', col: 'teal' });
+  emphases.push({ label: v1, col: 'rose' }, { label: v2, col: 'rose' });
+  trajectoryState.emphasisAdd.forEach(l => emphases.push({ label: l, col: 'gold' }));
 
-  emphases.push({ label: v1, col: 'rose' });
-  emphases.push({ label: v2, col: 'rose' });
-
-  trajectoryState.emphasisAdd.forEach((label) => {
-    emphases.push({ label, col: 'gold' });
-  });
-
-  document.getElementById('emph-set').innerHTML = emphases
-    .slice(0, 7)
-    .map((e) => `<span class="emph-chip ${e.col}">${e.label}</span>`)
-    .join('');
+  document.getElementById('emph-set').innerHTML =
+    emphases.slice(0, 7).map(e => `<span class="emph-chip ${e.col}">${e.label}</span>`).join('');
 
   document.getElementById('tension-set').innerHTML = [
     { left: 'Stability', right: 'Freedom', val: stab, color: 'var(--gold)' },
     { left: 'Mastery', right: 'Exploration', val: mast, color: 'var(--gold)' },
     { left: 'Social', right: 'Solitary', val: soc, color: 'var(--teal)' },
-  ]
-    .map(
-      (t) => `
-      <div>
-        <div class="tension-poles"><span>${t.left}</span><span>${t.right}</span></div>
-        <div class="tension-track">
-          <div class="tension-fill" style="width:${((t.val - 1) / 4) * 100}%;background:${t.color};"></div>
-        </div>
-      </div>
-    `
-    )
-    .join('');
+  ].map(t => `
+    <div>
+      <div class="tension-poles"><span>${t.left}</span><span>${t.right}</span></div>
+      <div class="tension-track"><div class="tension-fill" style="width:${((t.val-1)/4)*100}%;background:${t.color};"></div></div>
+    </div>
+  `).join('');
 }
 
+// ── BUILD AGENT REPORT ───────────────────────────────────────
 async function buildAgentReport(inputs) {
-  try {
-    console.log('buildAgentReport starting');
+  const prompt = `You are an AI agent who was dispatched to live in the future this person is imagining. You spent three days there. You are now reporting back.
 
-    const prompt = `
-You are an AI agent who was dispatched to live in the future ${inputs.manifestation} describes.
-You spent three days there. You are now reporting back.
+You experienced this future from the inside — not as an observer, but as the person living it. Everything you report is specific, grounded, and honest. You do not sugarcoat. You do not catastrophise. You report what you actually found.
 
 The person who sent you has told you:
 - What they want to manifest: ${inputs.manifestation}
@@ -1467,143 +1423,106 @@ The person who sent you has told you:
 - What they want less of: ${inputs.less_of}
 - What they are afraid of: ${inputs.fear}
 - Their values: ${inputs.values}
-- Stability vs Freedom (slider): ${inputs.stability}
-- Belonging vs Solitude (slider): ${inputs.belonging}
-- Mastery vs Exploration (slider): ${inputs.mastery}
+- Stability vs Freedom (1=stability, 5=freedom): ${inputs.stability}
+- Social vs Solitary (1=social, 5=solitary): ${inputs.belonging}
+- Mastery vs Exploration (1=mastery, 5=exploration): ${inputs.mastery}
 
 Generate your report in three findings. Return JSON ONLY.
 
 REPORT 1 — Daily Life & Routine
-What did the day-to-day actually look like? Where did you wake up? What did a Tuesday feel like? Include physical environment, time, money, small rituals.
+What did the day-to-day feel like emotionally and physically? Where did you wake up? What did a Tuesday feel like? Include the physical environment and small rituals. Focus on atmosphere and feeling — not just costs. One or two specific costs are fine but do not lead with money.
 
 REPORT 2 — Social World & Belonging
-Who was around? How did people treat you? How were you perceived? Include one specific interaction.
+Who was around? How did people treat you? How were you perceived? What was the texture of connection — was it easy, effortful, lonely, full? Include one specific interaction with a named person.
 
 REPORT 3 — The Cost & The Surprise
-What was harder than expected? What did you have to give up? What surprised you, good or bad?
+Be unflinching here. What was genuinely harder than expected? What did you have to give up that actually hurt? What identity or comfort did you lose? There are no perfect futures — name the real emotional cost, not just the practical one. Also include one genuine surprise (positive or negative).
 
-AGENT RECOMMENDATION
-Based on what you found, what is the single most useful real-world step this person could take this week to test whether this future is actually right for them?
+AGENT RECOMMENDATIONS
+Generate exactly THREE specific, immediately actionable steps this person could take THIS WEEK to test whether this future is right for them. Each should be different in nature — one practical, one social, one internal/reflective. Each must be one sentence, concrete, and doable in under 2 hours.
 
 Rules:
-- 120 to 160 words per finding
+- 130–170 words per finding
 - Write in second person
-- Be specific
-- Return valid JSON only
+- Be specific: name locations, types of people, real situations
+- Avoid vague phrases like "you feel fulfilled" or "you feel at peace"
+- Report 3 must name something that genuinely hurts or surprises — do not soften it
 
-Return exactly:
+Return ONLY this JSON structure with no extra text:
+
 {
-  "report_1": { "title": "", "finding": "", "signal": "" },
-  "report_2": { "title": "", "finding": "", "signal": "" },
-  "report_3": { "title": "", "finding": "", "signal": "" },
-  "agent_recommendation": ""
+  "report_1": {
+    "title": "",
+    "finding": "",
+    "signal": ""
+  },
+  "report_2": {
+    "title": "",
+    "finding": "",
+    "signal": ""
+  },
+  "report_3": {
+    "title": "",
+    "finding": "",
+    "signal": ""
+  },
+  "agent_recommendations": [
+    { "title": "", "action": "", "type": "practical" },
+    { "title": "", "action": "", "type": "social" },
+    { "title": "", "action": "", "type": "reflective" }
+  ]
 }
-`;
 
-    console.log('Calling /api/agent');
+The "signal" field is one short phrase (4–6 words) capturing the emotional texture of that finding. Like a field note header. Example: "Quieter than you expected" or "The mornings felt earned."
+The "title" for each recommendation should be 2–4 words. The "action" is the one-sentence instruction.`;
 
-    const response = await fetch('/api/agent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1200,
-        temperature: 0,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      }),
-    });
+  const response = await fetch("/api/agent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
 
-    const rawText = await response.text();
-    console.log('Raw API response:', rawText);
+  const data = await response.json();
+  console.log("API response:", JSON.stringify(data));
 
-    if (!response.ok) {
-      return fallbackReport(`HTTP ${response.status}`);
-    }
+  if (data.error) {
+    console.error("API error:", data.error);
+    return fallbackReport();
+  }
 
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch (err) {
-      return fallbackReport('Response was not valid JSON');
-    }
-
-    if (data.error) {
-      return fallbackReport(`API error: ${JSON.stringify(data.error)}`);
-    }
-
-    let raw = '';
-
-    if (Array.isArray(data.content)) {
-      const textBlock = data.content.find((item) => item.type === 'text');
-      raw = textBlock?.text || '';
-    }
-
-    if (!raw && typeof data.completion === 'string') {
-      raw = data.completion;
-    }
-
-    if (!raw) {
-      console.error('No model text found in response:', data);
-      return fallbackReport('No model text found');
-    }
-
-    const cleaned = raw.replace(/```json|```/g, '').trim();
-    console.log('Cleaned model output:', cleaned);
-
-    try {
-      return JSON.parse(cleaned);
-    } catch (err) {
-      return fallbackReport('Model output was not parseable JSON');
-    }
+  try {
+    const raw = data.content[0].text;
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleaned);
   } catch (err) {
-    console.error('buildAgentReport failed:', err);
-    return fallbackReport(err?.message || 'Unknown fetch error');
+    console.error("Parsing failed:", err);
+    return fallbackReport();
   }
 }
 
-function buildCommits() {
-  const v1 = vals[0];
-  const more = fv('inp-more');
-  const afraid = fv('inp-afraid');
-
-  commits = [
-    {
-      title: 'Morning anchor ritual',
-      desc: 'Choose one consistent act, coffee, journaling, or a short walk, that belongs entirely to you. Repeat it every morning for one week.',
-      time: '15 min / day',
-    },
-    {
-      title: `${v1} test`,
-      desc: `Identify one concrete way this change could feed your need for ${v1.toLowerCase()}. Try it this week. Write a single sentence about what you noticed.`,
-      time: '30 min total',
-    },
-    {
-      title: 'Write the both/and',
-      desc: `Complete this sentence and read it aloud: "I can reach toward ${more.toLowerCase() || 'what I want'} and still hold the grief of losing ${afraid.toLowerCase() || 'what matters'}."`,
-      time: '10 min',
-    },
-    {
-      title: 'Agent recommendation',
-      desc: window.agentRecommendation || 'Take one concrete step this week.',
-      time: 'This week',
-    },
-  ];
+function fallbackReport() {
+  return {
+    report_1: { title: "Day 1 — Daily Life", finding: "The agent encountered an error on this dispatch. Please try again.", signal: "Signal unclear" },
+    report_2: { title: "Day 2 — Social World", finding: "The agent encountered an error on this dispatch. Please try again.", signal: "Signal unclear" },
+    report_3: { title: "Day 3 — The Cost", finding: "The agent encountered an error on this dispatch. Please try again.", signal: "Signal unclear" },
+    agent_recommendations: [
+      { title: "Try again", action: "Dispatch the agent again to retrieve your report.", type: "practical" },
+      { title: "Check connection", action: "Ensure you have a stable internet connection and retry.", type: "practical" },
+      { title: "Come back later", action: "Return in a few minutes and try dispatching again.", type: "reflective" }
+    ]
+  };
 }
 
+// ── RENDER CARD ──────────────────────────────────────────────
 function renderCard(idx) {
   const c = cards[idx];
-  if (!c) return;
-
   cardFlipped = false;
-  ratings[idx] = ratings[idx] ?? null;
 
-  const c3d = document.getElementById('card-3d');
-  c3d.classList.remove('flipped');
+  document.getElementById('card-3d').classList.remove('flipped');
 
   const scene = document.getElementById('card-scene');
   scene.style.animation = 'none';
@@ -1613,68 +1532,41 @@ function renderCard(idx) {
   const front = document.getElementById('card-front');
   const tpl = document.getElementById(SCENE_TPLS[idx]);
   const clone = tpl.content.cloneNode(true);
-
   front.innerHTML = '';
   front.appendChild(clone);
 
   const topDiv = document.createElement('div');
   topDiv.className = 'card-front-top';
-  topDiv.innerHTML = `
-    <span class="card-snapshot-label">Future Snapshot</span>
-    <span class="card-snapshot-num">${INV_ROMAN[idx]}</span>
-  `;
+  topDiv.innerHTML = `<span class="card-snapshot-label">Field Report</span><span class="card-snapshot-num">${INV_ROMAN[idx]}</span>`;
 
   const ornament = document.createElement('div');
   ornament.className = 'card-ornament';
 
   const botDiv = document.createElement('div');
   botDiv.className = 'card-front-bottom';
-  botDiv.innerHTML = `
-    <p class="card-atmospheric-title">${FRONT_TITLES[idx]}</p>
-    <p class="card-tap-hint">Tap to reveal</p>
-  `;
+  botDiv.innerHTML = `<p class="card-atmospheric-title">${FRONT_TITLES[idx]}</p><p class="card-tap-hint">Tap to reveal</p>`;
 
   front.appendChild(topDiv);
   front.appendChild(ornament);
   front.appendChild(botDiv);
 
   const saved = ratings[idx];
-  const pillsHTML = c.tradeoffs
-    .map(
-      (t) => `
-      <div class="t-pill">
-        <span class="t-dot ${t.lvl.toLowerCase()}"></span>
-        <span class="t-name">${t.name}</span>
-        <span class="t-lvl ${t.lvl.toLowerCase()}">${t.lvl}</span>
-      </div>
-    `
-    )
-    .join('');
+  const ratingHTML = [1,2,3,4,5].map(n =>
+    `<button class="r-btn ${saved===n?'sel':''}" data-r="${n}" onclick="setRating(${idx},${n})">${n}</button>`
+  ).join('');
 
-  const ratingHTML = [1, 2, 3, 4, 5]
-    .map(
-      (n) =>
-        `<button class="r-btn ${saved === n ? 'sel' : ''}" data-r="${n}" onclick="setRating(${idx},${n})">${n}</button>`
-    )
-    .join('');
-
-  const back = document.getElementById('card-back');
-  back.innerHTML = `
+  document.getElementById('card-back').innerHTML = `
     <div class="card-back-accent" style="background:${ACCENTS[idx]}"></div>
     <div class="card-back-inner">
       <div class="card-back-badge">
-        <span class="card-back-badge-label">Simulated Snapshot</span>
+        <span class="card-back-badge-label">Agent Report</span>
         <span class="card-back-num">${INV_ROMAN[idx]}</span>
       </div>
       <p class="card-back-title">${c.title}</p>
-      <p class="reading-block-label" style="display:block;margin-top:4px;margin-bottom:12px;font-style:italic;opacity:.7;">${c.signal || ''}</p>
+      <p class="card-signal">${c.signal || ''}</p>
       <div style="border-top:1px solid var(--silver-3);"></div>
-      <p class="card-vignette">${c.vignette}</p>
+      <p class="card-finding">${c.finding}</p>
       <div style="border-top:1px solid var(--silver-3);"></div>
-      <div>
-        <span class="reading-block-label" style="display:block;margin-bottom:8px;">What this costs</span>
-        <div class="tradeoff-set">${pillsHTML}</div>
-      </div>
       <div class="reflection-block">
         <p class="refl-q">Did this version feel aligned?</p>
         <div class="rating-row">${ratingHTML}</div>
@@ -1682,18 +1574,16 @@ function renderCard(idx) {
     </div>
   `;
 
-  document.getElementById('card-counter').textContent = `Card ${INV_ROMAN[idx]} of III`;
+  document.getElementById('card-counter').textContent = `Report ${INV_ROMAN[idx]} of III`;
   document.getElementById('card-next-row').style.display = 'none';
-
-  const nextBtn = document.getElementById('card-next-btn');
-  nextBtn.textContent = idx === 2 ? 'Complete the Reading →' : 'Next Card →';
+  document.getElementById('card-next-btn').textContent = idx === 2 ? 'See Agent Recommendations →' : 'Next Report →';
 }
 
+// ── CARD INTERACTION ─────────────────────────────────────────
 function handleCardTap() {
   if (cardFlipped) return;
   cardFlipped = true;
   document.getElementById('card-3d').classList.add('flipped');
-
   setTimeout(() => {
     document.getElementById('card-next-row').style.display = 'flex';
     document.getElementById('card-next-row').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1702,9 +1592,9 @@ function handleCardTap() {
 
 function setRating(idx, r) {
   ratings[idx] = r;
-  document.querySelectorAll('#card-back .r-btn').forEach((b) => {
-    b.classList.toggle('sel', +b.dataset.r === r);
-  });
+  document.querySelectorAll('#card-back .r-btn').forEach(b =>
+    b.classList.toggle('sel', +b.dataset.r === r)
+  );
 }
 
 document.getElementById('card-next-btn').addEventListener('click', () => {
@@ -1717,34 +1607,43 @@ document.getElementById('card-next-btn').addEventListener('click', () => {
   }
 });
 
+// ── RENDER AGENT RECOMMENDATIONS ────────────────────────────
 function renderCommitments() {
-  buildCommits();
+  const recs = window.agentRecommendations || [];
   chosenCommit = null;
-  const grid = document.getElementById('commitment-grid');
-  grid.innerHTML = commits
-    .map(
-      (c, i) => `
-      <div class="commit-card" data-ci="${i}" onclick="selectCommit(${i})">
-        <div class="commit-check" id="cc-${i}">✓</div>
-        <div class="commit-body">
-          <p class="commit-title">${c.title}</p>
-          <p class="commit-desc">${c.desc}</p>
-          <span class="commit-time">${c.time}</span>
-        </div>
+
+  // Fallback if no recs
+  const displayRecs = recs.length > 0 ? recs : [
+    { title: 'Take one step', action: 'Identify the single most concrete action you could take this week and do it.', type: 'practical' }
+  ];
+
+  commits = displayRecs.map(r => ({
+    title: r.title,
+    desc: r.action,
+    time: r.type === 'practical' ? 'This week · Practical' : r.type === 'social' ? 'This week · Social' : 'This week · Reflective'
+  }));
+
+  document.getElementById('commitment-grid').innerHTML = commits.map((c, i) => `
+    <div class="commit-card" data-ci="${i}" onclick="selectCommit(${i})">
+      <div class="commit-check" id="cc-${i}">✓</div>
+      <div class="commit-body">
+        <p class="commit-title">${c.title}</p>
+        <p class="commit-desc">${c.desc}</p>
+        <span class="commit-time">${c.time}</span>
       </div>
-    `
-    )
-    .join('');
+    </div>
+  `).join('');
 }
 
 function selectCommit(i) {
   chosenCommit = commits[i];
-  document.querySelectorAll('.commit-card').forEach((c, ci) => {
-    c.classList.toggle('chosen', ci === i);
-  });
+  document.querySelectorAll('.commit-card').forEach((c, ci) =>
+    c.classList.toggle('chosen', ci === i)
+  );
   document.getElementById('commit-error').style.display = 'none';
 }
 
+// ── SEAL COMMITMENT ──────────────────────────────────────────
 document.getElementById('btn-commit').addEventListener('click', () => {
   if (!chosenCommit) {
     document.getElementById('commit-error').style.display = 'block';
@@ -1754,36 +1653,22 @@ document.getElementById('btn-commit').addEventListener('click', () => {
   trajectoryState = getTomorrowShiftFromCommit(chosenCommit);
 
   const formData = new FormData();
-  formData.append(
-    'data',
-    JSON.stringify({
-      change: fv('inp-change'),
-      more: fv('inp-more'),
-      less: fv('inp-less'),
-      afraid: fv('inp-afraid'),
-      values: vals,
-      stability: +document.getElementById('sl-stab').value,
-      mastery: +document.getElementById('sl-mast').value,
-      social: +document.getElementById('sl-soc').value,
-      readingText: document.getElementById('reading-text').textContent,
-      card1Title: cards[0]?.title,
-      card1Rating: ratings[0],
-      card2Title: cards[1]?.title,
-      card2Rating: ratings[1],
-      card3Title: cards[2]?.title,
-      card3Rating: ratings[2],
-      commitment: chosenCommit.title,
-      effectText: trajectoryState.effectText,
-    })
-  );
-
-  fetch(
-    'https://script.google.com/macros/s/AKfycbx9BAM1ec3ImCqtdCNCfRjUDkGTDU5c5pJaJhB6gNCTjsITg1WcFnP08YJXB4AbSBen/exec',
-    {
-      method: 'POST',
-      body: formData,
-    }
-  ).catch(() => {});
+  formData.append('data', JSON.stringify({
+    change: fv('inp-change'), more: fv('inp-more'), less: fv('inp-less'), afraid: fv('inp-afraid'),
+    values: vals,
+    stability: +document.getElementById('sl-stab').value,
+    mastery:   +document.getElementById('sl-mast').value,
+    social:    +document.getElementById('sl-soc').value,
+    readingText: document.getElementById('reading-text').textContent,
+    card1Title: cards[0]?.title, card1Rating: ratings[0],
+    card2Title: cards[1]?.title, card2Rating: ratings[1],
+    card3Title: cards[2]?.title, card3Rating: ratings[2],
+    commitment: chosenCommit.title,
+    effectText: trajectoryState.effectText
+  }));
+  fetch('https://script.google.com/macros/s/AKfycbx9BAM1ec3ImCqtdCNCfRjUDkGTDU5c5pJaJhB6gNCTjsITg1WcFnP08YJXB4AbSBen/exec', {
+    method: 'POST', body: formData
+  }).catch(() => {});
 
   document.querySelector('.confirm-card').innerHTML = `
     <p class="reading-text" style="text-align:center;">You chose to test:</p>
@@ -1792,7 +1677,7 @@ document.getElementById('btn-commit').addEventListener('click', () => {
     <div style="border-top:1px solid var(--silver-3);margin-top:4px;padding-top:12px;">
       <span class="reading-block-label" style="display:block;margin-bottom:8px;text-align:center;">Tomorrow's reading will tilt toward</span>
       <div class="emph-set" style="justify-content:center;">
-        ${trajectoryState.emphasisAdd.map((label) => `<span class="emph-chip gold">${label}</span>`).join('')}
+        ${trajectoryState.emphasisAdd.map(l => `<span class="emph-chip gold">${l}</span>`).join('')}
       </div>
     </div>
   `;
@@ -1800,119 +1685,70 @@ document.getElementById('btn-commit').addEventListener('click', () => {
   goTo('page-confirm');
 });
 
+// ── BEGIN BUTTON ─────────────────────────────────────────────
 document.getElementById('btn-begin').addEventListener('click', () => {
-  const change = fv('inp-change');
-  const more = fv('inp-more');
-  const less = fv('inp-less');
-  const afraid = fv('inp-afraid');
-
+  const change = fv('inp-change'), more = fv('inp-more'),
+        less = fv('inp-less'), afraid = fv('inp-afraid');
   if (!change || !more || !less || !afraid || vals.length !== 2) {
     document.getElementById('form-error').style.display = 'block';
     return;
   }
-
   document.getElementById('form-error').style.display = 'none';
   buildInterp();
   goTo('page-interp');
 });
 
+// ── DRAW / DISPATCH BUTTON ───────────────────────────────────
 document.getElementById('btn-draw').addEventListener('click', async () => {
-  try {
-    const inputs = {
-      manifestation: fv('inp-change'),
-      more_of: fv('inp-more'),
-      less_of: fv('inp-less'),
-      fear: fv('inp-afraid'),
-      values: vals.join(', '),
-      stability: document.getElementById('sl-stab').value,
-      belonging: document.getElementById('sl-soc').value,
-      mastery: document.getElementById('sl-mast').value,
-    };
+  const inputs = {
+    manifestation: fv('inp-change'),
+    more_of: fv('inp-more'),
+    less_of: fv('inp-less'),
+    fear: fv('inp-afraid'),
+    values: vals.join(', '),
+    stability: document.getElementById('sl-stab').value,
+    belonging: document.getElementById('sl-soc').value,
+    mastery: document.getElementById('sl-mast').value,
+  };
 
-    cardIdx = 0;
-    ratings = [null, null, null];
+  cardIdx = 0;
+  ratings = [null, null, null];
 
-    goTo('page-sim');
+  // Show loading screen with animation
+  goTo('page-loading');
+  startDispatchAnimation();
 
-    const report = await buildAgentReport(inputs);
+  const report = await buildAgentReport(inputs);
 
-    cards = [
-      {
-        title: report.report_1?.title || 'Day 1 — Daily Life',
-        vignette: report.report_1?.finding || 'No finding returned.',
-        signal: report.report_1?.signal || '',
-        tradeoffs: [{ name: 'Daily life', lvl: 'Medium' }],
-      },
-      {
-        title: report.report_2?.title || 'Day 2 — Social World',
-        vignette: report.report_2?.finding || 'No finding returned.',
-        signal: report.report_2?.signal || '',
-        tradeoffs: [{ name: 'Social world', lvl: 'Medium' }],
-      },
-      {
-        title: report.report_3?.title || 'Day 3 — The Cost',
-        vignette: report.report_3?.finding || 'No finding returned.',
-        signal: report.report_3?.signal || '',
-        tradeoffs: [{ name: 'The cost', lvl: 'Low' }],
-      },
-    ];
+  cards = [
+    { title: report.report_1.title, finding: report.report_1.finding, signal: report.report_1.signal },
+    { title: report.report_2.title, finding: report.report_2.finding, signal: report.report_2.signal },
+    { title: report.report_3.title, finding: report.report_3.finding, signal: report.report_3.signal },
+  ];
 
-    window.agentRecommendation = report.agent_recommendation || 'Take one concrete step this week.';
+  window.agentRecommendations = report.agent_recommendations || [];
 
-    setTimeout(() => renderCard(0), 420);
-  } catch (err) {
-    console.error('btn-draw handler failed:', err);
-
-    const report = fallbackReport(err?.message || 'btn-draw failed');
-
-    cards = [
-      {
-        title: report.report_1.title,
-        vignette: report.report_1.finding,
-        signal: report.report_1.signal,
-        tradeoffs: [{ name: 'Daily life', lvl: 'Medium' }],
-      },
-      {
-        title: report.report_2.title,
-        vignette: report.report_2.finding,
-        signal: report.report_2.signal,
-        tradeoffs: [{ name: 'Social world', lvl: 'Medium' }],
-      },
-      {
-        title: report.report_3.title,
-        vignette: report.report_3.finding,
-        signal: report.report_3.signal,
-        tradeoffs: [{ name: 'The cost', lvl: 'Low' }],
-      },
-    ];
-
-    window.agentRecommendation = report.agent_recommendation;
+  // Small delay so loading screen feels intentional
+  setTimeout(() => {
     goTo('page-sim');
     setTimeout(() => renderCard(0), 420);
-  }
+  }, 600);
 });
 
+// ── RESTART ──────────────────────────────────────────────────
 function restartReading() {
-  vals = [];
-  cardIdx = 0;
-  cardFlipped = false;
-  ratings = [null, null, null];
-  chosenCommit = null;
-  cards = [];
-  commits = [];
+  vals = []; cardIdx = 0; cardFlipped = false;
+  ratings = [null, null, null]; chosenCommit = null; cards = []; commits = [];
 
-  document.querySelectorAll('.vchip').forEach((c) => c.classList.remove('on'));
+  document.querySelectorAll('.vchip').forEach(c => c.classList.remove('on'));
   document.getElementById('chip-hint').textContent = 'Select 2';
   document.getElementById('form-error').style.display = 'none';
   document.getElementById('commit-error').style.display = 'none';
-
-  ['inp-change', 'inp-more', 'inp-less', 'inp-afraid'].forEach((id) => {
-    document.getElementById(id).value = '';
-  });
+  ['inp-change','inp-more','inp-less','inp-afraid'].forEach(id => document.getElementById(id).value = '');
 
   document.getElementById('sl-stab').value = clamp(3 + trajectoryState.sliderDelta.stab, 1, 5);
   document.getElementById('sl-mast').value = clamp(3 + trajectoryState.sliderDelta.mast, 1, 5);
-  document.getElementById('sl-soc').value = clamp(3 + trajectoryState.sliderDelta.soc, 1, 5);
+  document.getElementById('sl-soc').value  = clamp(3 + trajectoryState.sliderDelta.soc,  1, 5);
 
   goTo('page-input');
 }
