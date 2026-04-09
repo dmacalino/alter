@@ -62,6 +62,49 @@ app.post('/api/agent', async (req, res) => {
   }
 });
 
+app.post('/api/speak', async (req, res) => {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'ElevenLabs key not configured' });
+
+  const { text, voiceId } = req.body;
+  if (!text) return res.status(400).json({ error: 'No text provided' });
+
+  try {
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId || '21m00Tcm4TlvDq8ikWAM'}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: 'eleven_monolingual_v1',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.json();
+      return res.status(500).json({ error: err });
+    }
+
+    // Stream audio back to client
+    res.setHeader('Content-Type', 'audio/mpeg');
+    const buffer = await response.arrayBuffer();
+    res.send(Buffer.from(buffer));
+
+  } catch (err) {
+    console.error('TTS error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.use(express.static(__dirname));
 
 app.listen(PORT, () => {
