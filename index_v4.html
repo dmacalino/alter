@@ -35,6 +35,19 @@
 *,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
 html { height:100%; }
 
+.pattern-chip {
+  display: inline-block;
+  font-family: 'Outfit', monospace;
+  font-size: .62rem;
+  font-weight: 300;
+  color: var(--teal);
+  border: 1px solid rgba(94,158,149,.3);
+  background: rgba(94,158,149,.06);
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  letter-spacing: .08em;
+}
+
 .voice-btn {
   display: inline-flex;
   align-items: center;
@@ -1503,22 +1516,24 @@ their values and fears suggest? Be direct. Do not hedge.
 Rules:
 - 130–170 words per finding
 - Write in second person
-- Be specific: name locations, types of people, real situations
+- Every finding must name at least: one specific location, one specific cost or time, one specific person or type of person
 - Avoid vague phrases like "you feel fulfilled" or "you feel at peace"
-- Report 3 must name something that genuinely hurts or surprises — do not soften it
+- Emotional observations must be physical — describe what the body does, not what the mind concludes
+- Report 3 must name something that genuinely hurts — do not soften it
+- The pattern field must read like data, not poetry
 
 Return ONLY this JSON structure with no extra text:
 
 {
   "dispatch_log": "",
-  "report_1": { "title": "", "finding": "", "signal": "" },
-  "report_2": { "title": "", "finding": "", "signal": "" },
-  "report_3": { "title": "", "finding": "", "signal": "" },
+  "report_1": { "title": "", "finding": "", "signal": "", "pattern": "" },
+  "report_2": { "title": "", "finding": "", "signal": "", "pattern": "" },
+  "report_3": { "title": "", "finding": "", "signal": "", "pattern": "" },
   "verdict": "",
   "agent_recommendations": [...]
 }
 
-The "signal" field is one short phrase (4–6 words) capturing the emotional texture of that finding. Like a field note header. Example: "Quieter than you expected" or "The mornings felt earned."
+The "pattern" field is a short data observation (8–12 words) written like a field measurement, not a feeling. Examples: "Social energy depletes by 6pm without exception" or "Creative output peaks in first 90 minutes then flatlines".
 The "title" for each recommendation should be 2–4 words. The "action" is the one-sentence instruction.`;
 
 
@@ -1659,6 +1674,7 @@ front.appendChild(clone);
       </div>
       <p class="card-back-title">${c.title}</p>
       <p class="card-signal">${c.signal || ''}</p>
+      ${c.pattern ? `<div class="pattern-chip">${c.pattern}</div>` : ''}
       <button class="voice-btn" id="voice-btn-${idx}" onclick="speakReport(${idx})">
       ▶ Hear this report
       </button>
@@ -1832,10 +1848,10 @@ if (report.dispatch_log) {
 }
 
   cards = [
-    { title: report.report_1.title, finding: report.report_1.finding, signal: report.report_1.signal },
-    { title: report.report_2.title, finding: report.report_2.finding, signal: report.report_2.signal },
-    { title: report.report_3.title, finding: report.report_3.finding, signal: report.report_3.signal },
-  ];
+  { title: report.report_1.title, finding: report.report_1.finding, signal: report.report_1.signal, pattern: report.report_1.pattern },
+  { title: report.report_2.title, finding: report.report_2.finding, signal: report.report_2.signal, pattern: report.report_2.pattern },
+  { title: report.report_3.title, finding: report.report_3.finding, signal: report.report_3.signal, pattern: report.report_3.pattern },
+];
 
   window.agentRecommendations = report.agent_recommendations || [];
   window.agentVerdict = report.verdict || '';
