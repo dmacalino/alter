@@ -914,7 +914,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
     <div class="input-header">
       <span class="eyebrow">Briefing Your Agent</span>
       <h1 class="ritual-title">A<em>lt</em>er</h1>
-    </div>
+    </div>   
 
     <div class="divider"></div>
 
@@ -1473,7 +1473,26 @@ function buildInterp() {
 
 // ── BUILD AGENT REPORT ───────────────────────────────────────
 async function buildAgentReport(inputs) {
-  const prompt = `You are an AI agent who was dispatched to live in the future this person is imagining. You spent three days there. You are now reporting back.
+const groundingData = (inputs.manifestation.toLowerCase().includes('barcelona') || 
+                       inputs.manifestation.toLowerCase().includes('spain')) ? `
+Real-world constraints for Barcelona:
+- Rent: €900–2,000/month for 1-bed in Gothic Quarter, Barceloneta, or Eixample
+- Coworking: €20/day at spaces like Aticco, MOB, or Faseo cafe (Greek cafe with basement events)
+- Lunch: €10–20 per meal. Menu del día common at local spots
+- Monthly groceries: €350/month at Al Campo or local markets
+- Transport: €22/month metro pass. Gothic Quarter is walkable — metro takes 20 min to most places
+- Total realistic monthly budget: €2,000–2,500 for a freelancer
+- Work rhythm: Many expats work 9–5 for Spanish companies, others have flexible schedules. Social life starts late — plans at 9 or 10pm are normal. Live music bars common
+- Third places: Faseo cafe (events in basement), Comedy Clubhouse on Laietana, beach volleyball at Barceloneta, music and dance at parks
+- Social: Barcelona is international but locals are hard to befriend deeply without Spanish or Catalan. Expats cluster in Barceloneta, Gothic Quarter, Eixample. You meet people easily — everyone is in the same boat and very social
+- Language barrier: English works for social life. Spanish enriches and doubles your experiences. Catalan is primary for locals
+- Belonging timeline: Acquaintances in 2 weeks. Real friendships take 6+ months of consistent effort
+- Bureaucracy: Admin in Spain is painful. Language barrier adds frustration. Residency card appointments are hard to get. Bank account requires in-person visit. NIE number takes weeks
+- Common surprises: Weeks lost trying to register for residency. Hundreds of euros for private doctor visits. Food scene is good but less diverse than North American cities — spaces feel very European and homogeneous
+` : '';
+
+  const prompt =   
+  `You are an AI agent who was dispatched to live in the future this person is imagining. You spent three days there. You are now reporting back.
 
 You experienced this future from the inside — not as an observer, but as the person living it. Everything you report is specific, grounded, and honest. You do not sugarcoat. You do not catastrophise. You report what you actually found.
 
@@ -1486,6 +1505,7 @@ The person who sent you has told you:
 - Stability vs Freedom (1=stability, 5=freedom): ${inputs.stability}
 - Social vs Solitary (1=social, 5=solitary): ${inputs.belonging}
 - Mastery vs Exploration (1=mastery, 5=exploration): ${inputs.mastery}
+${groundingData ? `\nUse these real-world constraints where relevant. Cite specific places, costs, and social dynamics from this data:\n${groundingData}` : ''} 
 
 Generate your report in three findings. Return JSON ONLY.
 
