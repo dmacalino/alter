@@ -1523,7 +1523,24 @@ EMOTIONAL TRUTH - Emotional observations must reference the body specifically: j
 PATTERN QUALITY - The "pattern" field must read like something the agent actually tracked and measured. Use numbers or frequencies where possible. Bad: "Connection feels hard". Good: "Meaningful conversation happens once every 3–4 days".
 
 AGENT RECOMMENDATIONS
-Generate exactly THREE specific, immediately actionable steps this person could take THIS WEEK to test whether this future is right for them. Each should be different in nature — one practical, one social, one internal/reflective. Each must be one sentence, concrete, and doable in under 2 hours.
+Based specifically on what you found in this future — not generically — 
+generate exactly THREE actions this person could take THIS WEEK.
+
+Each recommendation must:
+- Reference something specific from your findings (a place, a person type, 
+  a cost, a dynamic you observed)
+- Be completable in under 2 hours
+- Sound like the agent is speaking directly: 
+  "Based on what I found..." or "The social dynamic I observed suggests..."
+
+One practical (something to research or test in the real world)
+One social (involves another person)
+One internal (journalling, reflection, or honest self-assessment)
+
+Do not write generic actions. If the finding mentioned Faseo cafe, 
+the social recommendation should reference that type of space.
+If the finding mentioned residency card friction, 
+the practical recommendation should test that friction now.
 
 DISPATCH LOG
 One sentence written by the agent in the moment of arriving — 
@@ -1765,7 +1782,7 @@ function renderCommitments() {
   commits = displayRecs.map(r => ({
     title: r.title,
     desc: r.action,
-    time: r.type === 'practical' ? 'This week · Practical' : r.type === 'social' ? 'This week · Social' : 'This week · Reflective'
+    time: r.type === 'practical' ? 'Agent says · Do this' : r.type === 'social' ? 'Agent says · Meet someone' : 'Agent says · Sit with this'
   }));
 
   document.getElementById('commitment-grid').innerHTML = commits.map((c, i) => `
