@@ -560,7 +560,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
 .card-scene {
   width:calc(100% - 48px); max-width:400px;
-  aspect-ratio:.58;
+  height:min(720px, 84vh);
   perspective:1200px; cursor:pointer; position:relative; margin:0 auto;
 }
 
@@ -1483,13 +1483,32 @@ const FRONT_TITLES = [
 ];
 
 // ── DISPATCH LOADING ANIMATION ───────────────────────────────
-function startDispatchAnimation() {
+function startDispatchAnimation(inputs) {
+  const m = (inputs && inputs.manifestation) ? inputs.manifestation : 'your future';
+  const more = (inputs && inputs.more_of) ? inputs.more_of : '';
+  const fear = (inputs && inputs.fear) ? inputs.fear : '';
+
+  // Build context-aware log texts shown in the dispatch panel
+  const logTexts = [
+    `Arriving: ${m.length > 40 ? m.slice(0,40)+'…' : m}`,
+    more ? `Tracking opportunities for more ${more.slice(0,32)}` : 'Mapping daily rhythms & routines',
+    `Reading the social landscape`,
+    fear ? `Surfacing risks around ${fear.slice(0,30)}` : 'Surfacing hidden costs & tradeoffs',
+    `Compiling your field report`,
+  ];
+
+  // Update the HTML log line labels before animating
+  logTexts.forEach((text, i) => {
+    const el = document.getElementById(`txt-${i}`);
+    if (el) el.textContent = text;
+  });
+
   const messages = [
-    'Living your future…',
-    'Mapping the rhythms…',
-    'Reading the social world…',
-    'Finding the friction…',
-    'Writing the report…'
+    `Stepping into: ${m.length > 35 ? m.slice(0,35)+'…' : m}`,
+    more ? `Logging what more ${more.slice(0,28)} looks like…` : 'Mapping the rhythms…',
+    `Reading the social world…`,
+    fear ? `Testing the edges around ${fear.slice(0,25)}…` : 'Finding the friction…',
+    `Writing the report…`,
   ];
 
   let step = 0;
@@ -2182,7 +2201,7 @@ document.getElementById('btn-draw').addEventListener('click', async () => {
 
   // Show loading screen with animation
   goTo('page-loading');
-  startDispatchAnimation();
+  startDispatchAnimation(inputs);
 
   // Change 3: kick off evidence feed in parallel with the main report call
   const evidenceLinesPromise = fetchEvidenceLines(inputs);
