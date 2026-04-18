@@ -18,8 +18,8 @@
   --gold-2:    #e8c98a;
   --gold-dim:  rgba(201,169,110,.18);
   --gold-glow: rgba(201,169,110,.08);
-  --silver:    rgba(255,255,255,.55);
-  --silver-2:  rgba(255,255,255,.30);
+  --silver:    rgba(255,255,255,.75);
+  --silver-2:  rgba(255,255,255,.50);
   --silver-3:  rgba(255,255,255,.12);
   --silver-4:  rgba(255,255,255,.06);
   --rose:      #b87070;
@@ -152,8 +152,8 @@ body::after {
 
 h1.ritual-title {
   font-family:'Cinzel', serif;
-  font-size:clamp(1.8rem,5vw,2.6rem);
-  font-weight:400;
+  font-size:clamp(2.4rem,7vw,3.4rem);
+  font-weight:500;
   letter-spacing:.06em;
   text-align:center;
   line-height:1.2;
@@ -361,6 +361,7 @@ input[type="range"] {
   -webkit-appearance:none; appearance:none;
   width:100%; height:2px; border-radius:99px;
   background:rgba(201,169,110,.55); outline:none; cursor:pointer;
+  touch-action: none;
 }
 input[type="range"]::-webkit-slider-runnable-track { height:2px; border-radius:99px; background:rgba(201,169,110,.55); }
 input[type="range"]::-moz-range-track { height:2px; border-radius:99px; background:rgba(201,169,110,.55); }
@@ -837,6 +838,109 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 .loop-node { font-family:'Cinzel', serif; font-size:.56rem; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); opacity:.6; }
 .loop-arrow { color:var(--gold); opacity:.3; font-size:.75rem; }
 
+/* ============================================================
+   EVIDENCE FEED (loading page)
+   ============================================================ */
+.evidence-feed {
+  width:100%;
+  background:rgba(94,158,149,.04);
+  border:1px solid rgba(94,158,149,.18);
+  border-radius:var(--r-card);
+  padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  max-height:200px;
+  overflow:hidden;
+  position:relative;
+}
+.evidence-feed::after {
+  content:'';
+  position:absolute;
+  bottom:0; left:0; right:0; height:40px;
+  background:linear-gradient(transparent, rgba(12,13,16,.95));
+  pointer-events:none;
+  border-radius:0 0 var(--r-card) var(--r-card);
+}
+.evidence-feed-label {
+  font-family:'Cinzel', serif;
+  font-size:.52rem;
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  color:var(--teal);
+  opacity:.6;
+  margin-bottom:2px;
+}
+.evidence-line {
+  font-family:'DM Mono', 'Courier New', monospace;
+  font-size:.72rem;
+  color:var(--teal);
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity .4s ease, transform .4s ease;
+  line-height:1.5;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.evidence-line.visible {
+  opacity:.85;
+  transform:translateY(0);
+}
+
+/* ============================================================
+   SWIPE HINT TOOLTIP
+   ============================================================ */
+.swipe-hint {
+  position:absolute;
+  bottom:16px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10;
+  background:rgba(12,13,16,.88);
+  border:1px solid rgba(201,169,110,.35);
+  border-radius:var(--r-pill);
+  padding:8px 18px;
+  font-family:'Cinzel', serif;
+  font-size:.58rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--gold);
+  white-space:nowrap;
+  pointer-events:none;
+  animation:swipeHintPulse 2.2s ease-in-out infinite;
+}
+@keyframes swipeHintPulse {
+  0%,100% { opacity:.7; box-shadow:0 0 0 0 rgba(201,169,110,.0); }
+  50% { opacity:1; box-shadow:0 0 0 6px rgba(201,169,110,.08); }
+}
+
+/* ============================================================
+   EXAMPLE PROMPT CHIPS
+   ============================================================ */
+.prompt-chips {
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:8px;
+}
+.prompt-chip {
+  cursor:pointer;
+  padding:5px 13px;
+  border-radius:var(--r-pill);
+  border:1px solid rgba(201,169,110,.3);
+  background:rgba(201,169,110,.07);
+  font-family:'Outfit', sans-serif;
+  font-size:.75rem;
+  color:var(--gold);
+  transition:all var(--tr-fast);
+  user-select:none;
+}
+.prompt-chip:hover {
+  background:rgba(201,169,110,.14);
+  border-color:rgba(201,169,110,.55);
+}
+
 @media (max-width: 420px) {
   .card-scene { width:calc(100% - 32px); }
   .signal-form { padding:20px 16px; }
@@ -855,11 +959,31 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
     <div style="height:20px"></div>
 
+    <!-- Constellation decoration (purely decorative) -->
+    <svg aria-hidden="true" focusable="false" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.35;" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8%" cy="12%" r="1.2" fill="rgba(201,169,110,.6)"/>
+      <circle cx="15%" cy="28%" r=".7" fill="rgba(255,255,255,.4)"/>
+      <circle cx="23%" cy="8%" r="1" fill="rgba(255,255,255,.5)"/>
+      <circle cx="78%" cy="10%" r="1.3" fill="rgba(201,169,110,.5)"/>
+      <circle cx="88%" cy="22%" r=".8" fill="rgba(255,255,255,.4)"/>
+      <circle cx="92%" cy="6%" r="1" fill="rgba(255,255,255,.55)"/>
+      <circle cx="6%" cy="55%" r=".9" fill="rgba(255,255,255,.3)"/>
+      <circle cx="94%" cy="48%" r="1.1" fill="rgba(201,169,110,.4)"/>
+      <circle cx="50%" cy="4%" r=".8" fill="rgba(255,255,255,.35)"/>
+      <circle cx="38%" cy="92%" r=".7" fill="rgba(255,255,255,.25)"/>
+      <circle cx="65%" cy="88%" r="1" fill="rgba(201,169,110,.3)"/>
+      <line x1="8%" y1="12%" x2="15%" y2="28%" stroke="rgba(201,169,110,.12)" stroke-width=".5"/>
+      <line x1="15%" y1="28%" x2="23%" y2="8%" stroke="rgba(201,169,110,.10)" stroke-width=".5"/>
+      <line x1="78%" y1="10%" x2="88%" y2="22%" stroke="rgba(201,169,110,.12)" stroke-width=".5"/>
+      <line x1="88%" y1="22%" x2="92%" y2="6%" stroke="rgba(201,169,110,.10)" stroke-width=".5"/>
+    </svg>
+
     <div class="onboard-glyph">✦</div>
 
     <div style="text-align:center;">
       <span style="font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);opacity:.6;display:block;margin-bottom:14px;">What is ALTER</span>
       <h1 class="ritual-title">A<em>lt</em>er</h1>
+      <p style="font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--silver-2);margin-top:12px;">AI agent · futures scouting · evidence-based manifestation</p>
     </div>
 
     <div class="divider"></div>
@@ -928,6 +1052,11 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
       <div class="field">
         <span class="field-label">The future you want to manifest</span>
         <input type="text" id="inp-change" placeholder="e.g. Quitting my job, moving to Lisbon, working for myself…"/>
+        <div class="prompt-chips">
+          <button type="button" class="prompt-chip" onclick="document.getElementById('inp-change').value='Become a nutritional scientist'">Become a nutritional scientist</button>
+          <button type="button" class="prompt-chip" onclick="document.getElementById('inp-change').value='Start my own studio'">Start my own studio</button>
+          <button type="button" class="prompt-chip" onclick="document.getElementById('inp-change').value='Move abroad and freelance'">Move abroad and freelance</button>
+        </div>
       </div>
 
       <div class="field">
@@ -1075,6 +1204,11 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
         </div>
       </div>
 
+      <div class="evidence-feed" id="evidence-feed">
+        <span class="evidence-feed-label">Live evidence collection</span>
+        <!-- Evidence lines injected by JS -->
+      </div>
+
     </div>
 
   </div><!-- /page-loading -->
@@ -1183,6 +1317,8 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
     <button class="btn-ritual" onclick="restartReading()"><span>End Today's Reading</span></button>
 
+    <button class="btn-ritual" onclick="restartReading()" style="background:var(--gold-dim);border-color:rgba(201,169,110,.5);margin-top:-8px;"><span>Dispatch another agent →</span></button>
+
   </div><!-- /page-confirm -->
 
 </div><!-- /app -->
@@ -1287,6 +1423,21 @@ function goTo(id) {
   }, 380);
 }
 
+// ── SLIDER MOBILE FIX ────────────────────────────────────────
+document.querySelectorAll('input[type="range"]').forEach(slider => {
+  slider.addEventListener('touchstart', function(e) {
+    // Dispatch synthetic input event so value updates register on touch
+    this.dispatchEvent(new Event('input', { bubbles: true }));
+  }, { passive: true });
+  slider.addEventListener('touchend', function(e) {
+    this.dispatchEvent(new Event('input', { bubbles: true }));
+  }, { passive: true });
+  slider.addEventListener('touchmove', function(e) {
+    // Let the browser handle the range drag natively; fire input so UI updates
+    this.dispatchEvent(new Event('input', { bubbles: true }));
+  }, { passive: true });
+});
+
 // ── VALUE CHIPS ──────────────────────────────────────────────
 document.querySelectorAll('.vchip').forEach(el => {
   el.addEventListener('click', () => {
@@ -1372,6 +1523,109 @@ function startDispatchAnimation() {
   }
 
   setTimeout(advanceLog, 300);
+}
+
+// ── EVIDENCE FEED ANIMATION ──────────────────────────────────
+const PLACEHOLDER_EVIDENCE = [
+  'Scanning field data…',
+  'Cross-referencing patterns…',
+  'Logging observations…',
+  'Measuring friction points…',
+  'Tracking social indicators…',
+  'Analysing daily rhythms…',
+  'Compiling cost signals…',
+  'Reviewing belonging data…',
+];
+
+function startEvidenceFeed(linesPromise) {
+  const feed = document.getElementById('evidence-feed');
+  if (!feed) return;
+
+  // Clear previous lines (keep label)
+  const label = feed.querySelector('.evidence-feed-label');
+  feed.innerHTML = '';
+  if (label) feed.appendChild(label);
+
+  let lineIndex = 0;
+  let resolvedLines = null;
+  let displayedCount = 0;
+
+  // Show placeholder lines while waiting
+  function showNextLine() {
+    const text = resolvedLines
+      ? (resolvedLines[displayedCount] || null)
+      : PLACEHOLDER_EVIDENCE[lineIndex % PLACEHOLDER_EVIDENCE.length];
+
+    if (!text) return;
+
+    const div = document.createElement('div');
+    div.className = 'evidence-line';
+    const ts = new Date();
+    const hh = String(ts.getHours()).padStart(2,'0');
+    const mm = String(ts.getMinutes()).padStart(2,'0');
+    const ss = String(ts.getSeconds()).padStart(2,'0');
+    div.textContent = `[${hh}:${mm}:${ss}] ${text}`;
+    feed.appendChild(div);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add('visible')));
+
+    lineIndex++;
+    displayedCount++;
+  }
+
+  // Drip lines every 900ms
+  const interval = setInterval(() => {
+    showNextLine();
+  }, 900);
+
+  // Show first line immediately
+  showNextLine();
+
+  // When real lines arrive, slot them in
+  if (linesPromise) {
+    linesPromise.then(lines => {
+      resolvedLines = lines || PLACEHOLDER_EVIDENCE;
+    }).catch(() => {
+      resolvedLines = PLACEHOLDER_EVIDENCE;
+    });
+  }
+
+  // Store interval id so we can stop it
+  window._evidenceFeedInterval = interval;
+}
+
+function stopEvidenceFeed() {
+  if (window._evidenceFeedInterval) {
+    clearInterval(window._evidenceFeedInterval);
+    window._evidenceFeedInterval = null;
+  }
+}
+
+// ── EVIDENCE API CALL ─────────────────────────────────────────
+async function fetchEvidenceLines(inputs) {
+  const prompt = `You are an AI agent returning from the future.
+Generate 8 short log lines (each under 12 words) describing evidence you collected while living this future: "${inputs.manifestation}".
+Each line should sound like a field observation being logged in real time.
+Examples: "Salary benchmarks logged for mid-level roles in this field", "Social connection frequency tracked: 3–4 meaningful exchanges per week".
+Return ONLY a JSON array of strings, no extra text.`;
+
+  try {
+    const response = await fetch("/api/agent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 300,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const raw = data.content[0].text;
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    return PLACEHOLDER_EVIDENCE;
+  }
 }
 
 // ── TRAJECTORY LOGIC ─────────────────────────────────────────
@@ -1673,68 +1927,100 @@ async function speakReport(idx) {
 // ── RENDER CARD ──────────────────────────────────────────────
 function renderCard(idx) {
   const c = cards[idx];
-  cardFlipped = false;
 
-  document.getElementById('card-3d').classList.remove('flipped');
+  // Scroll to top before rendering new card (change 6)
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  // Change 1: reset flip state explicitly before swapping content
+  cardFlipped = false;
+  const card3d = document.getElementById('card-3d');
+  card3d.classList.remove('flipped');
+  card3d.style.transform = 'rotateY(0deg)';
 
   const scene = document.getElementById('card-scene');
-  scene.style.animation = 'none';
-  void scene.offsetWidth;
-  scene.style.animation = 'cardDraw .55s cubic-bezier(.4,0,.2,1) both';
 
-  const front = document.getElementById('card-front');
-front.innerHTML = '';
+  // Fade out the card container briefly to prevent bleed-through
+  scene.style.opacity = '0';
+  scene.style.transition = 'opacity .15s ease';
 
-const tpl = document.getElementById(SCENE_TPLS[idx]);
-const clone = tpl.content.cloneNode(true);
-front.appendChild(clone);
+  // Clear back content immediately so old text can't bleed through
+  document.getElementById('card-back').innerHTML = '';
 
-  const topDiv = document.createElement('div');
-  topDiv.className = 'card-front-top';
-  topDiv.innerHTML = `<span class="card-snapshot-label">Field Report</span><span class="card-snapshot-num">${INV_ROMAN[idx]}</span>`;
+  setTimeout(() => {
+    scene.style.animation = 'none';
+    void scene.offsetWidth;
+    scene.style.animation = 'cardDraw .55s cubic-bezier(.4,0,.2,1) both';
+    scene.style.opacity = '';
+    scene.style.transition = '';
+    // Allow natural transform again after reset
+    card3d.style.transform = '';
 
-  const ornament = document.createElement('div');
-  ornament.className = 'card-ornament';
+    const front = document.getElementById('card-front');
+    front.innerHTML = '';
 
-  const botDiv = document.createElement('div');
-  botDiv.className = 'card-front-bottom';
-  botDiv.innerHTML = `<p class="card-atmospheric-title">${FRONT_TITLES[idx]}</p><p class="card-tap-hint">Tap to reveal</p>`;
+    const tpl = document.getElementById(SCENE_TPLS[idx]);
+    const clone = tpl.content.cloneNode(true);
+    front.appendChild(clone);
 
-  front.appendChild(topDiv);
-  front.appendChild(ornament);
-  front.appendChild(botDiv);
+    const topDiv = document.createElement('div');
+    topDiv.className = 'card-front-top';
+    topDiv.innerHTML = `<span class="card-snapshot-label">Field Report</span><span class="card-snapshot-num">${INV_ROMAN[idx]}</span>`;
 
-  const saved = ratings[idx];
-  const ratingHTML = [1,2,3,4,5].map(n =>
-    `<button class="r-btn ${saved===n?'sel':''}" data-r="${n}" onclick="setRating(${idx},${n})">${n}</button>`
-  ).join('');
+    const ornament = document.createElement('div');
+    ornament.className = 'card-ornament';
 
-  document.getElementById('card-back').innerHTML = `
-    <div class="card-back-accent" style="background:${ACCENTS[idx]}"></div>
-    <div class="card-back-inner">
-      <div class="card-back-badge">
-        <span class="card-back-badge-label">Agent Report</span>
-        <span class="card-back-num">${INV_ROMAN[idx]}</span>
+    const botDiv = document.createElement('div');
+    botDiv.className = 'card-front-bottom';
+    botDiv.innerHTML = `<p class="card-atmospheric-title">${FRONT_TITLES[idx]}</p><p class="card-tap-hint">Tap to reveal</p>`;
+
+    front.appendChild(topDiv);
+    front.appendChild(ornament);
+    front.appendChild(botDiv);
+
+    const saved = ratings[idx];
+    const ratingHTML = [1,2,3,4,5].map(n =>
+      `<button class="r-btn ${saved===n?'sel':''}" data-r="${n}" onclick="setRating(${idx},${n})">${n}</button>`
+    ).join('');
+
+    // Change 5: swipe hint tooltip on first card only
+    const showHint = idx === 0 && !localStorage.getItem('alter_rated_hint_shown');
+    const hintHTML = showHint
+      ? `<div class="swipe-hint" id="swipe-hint-overlay">Rate this dispatch — it shapes your recommendations</div>`
+      : '';
+
+    document.getElementById('card-back').innerHTML = `
+      <div class="card-back-accent" style="background:${ACCENTS[idx]}"></div>
+      <div class="card-back-inner">
+        <div class="card-back-badge">
+          <span class="card-back-badge-label">Agent Report</span>
+          <span class="card-back-num">${INV_ROMAN[idx]}</span>
+        </div>
+        <p class="card-back-title">${c.title}</p>
+        <p class="card-signal">${c.signal || ''}</p>
+        ${c.pattern ? `<div class="pattern-chip">${c.pattern}</div>` : ''}
+        <button class="voice-btn" id="voice-btn-${idx}" onclick="speakReport(${idx})">
+        ▶ Hear this report
+        </button>
+        <div style="border-top:1px solid var(--silver-3);"></div>
+        <p class="card-finding">${c.finding}</p>
+        <div style="border-top:1px solid var(--silver-3);"></div>
+        <div class="reflection-block">
+          <p class="refl-q">Did this version feel aligned?</p>
+          <div class="rating-row">${ratingHTML}</div>
+        </div>
       </div>
-      <p class="card-back-title">${c.title}</p>
-      <p class="card-signal">${c.signal || ''}</p>
-      ${c.pattern ? `<div class="pattern-chip">${c.pattern}</div>` : ''}
-      <button class="voice-btn" id="voice-btn-${idx}" onclick="speakReport(${idx})">
-      ▶ Hear this report
-      </button>
-      <div style="border-top:1px solid var(--silver-3);"></div>
-      <p class="card-finding">${c.finding}</p>
-      <div style="border-top:1px solid var(--silver-3);"></div>
-      <div class="reflection-block">
-        <p class="refl-q">Did this version feel aligned?</p>
-        <div class="rating-row">${ratingHTML}</div>
-      </div>
-    </div>
-  `;
+      ${hintHTML}
+    `;
 
-  document.getElementById('card-counter').textContent = `Report ${INV_ROMAN[idx]} of III`;
-  document.getElementById('card-next-row').style.display = 'none';
-  document.getElementById('card-next-btn').textContent = idx === 2 ? 'See Agent Recommendations →' : 'Next Report →';
+    // Change 4: always shows correct count (max 3)
+    document.getElementById('card-counter').textContent = `Report ${INV_ROMAN[Math.min(idx,2)]} of III`;
+    document.getElementById('card-next-row').style.display = 'none';
+    document.getElementById('card-next-btn').textContent = idx === 2 ? 'See Agent Recommendations →' : 'Next Report →';
+
+    // Scroll the card-back to top as well
+    const cardBack = document.getElementById('card-back');
+    if (cardBack) cardBack.scrollTop = 0;
+  }, 160);
 }
 
 // ── CARD INTERACTION ─────────────────────────────────────────
@@ -1753,6 +2039,14 @@ function setRating(idx, r) {
   document.querySelectorAll('#card-back .r-btn').forEach(b =>
     b.classList.toggle('sel', +b.dataset.r === r)
   );
+  // Change 5: dismiss swipe hint on first rating interaction
+  const hint = document.getElementById('swipe-hint-overlay');
+  if (hint) {
+    hint.style.transition = 'opacity .3s ease';
+    hint.style.opacity = '0';
+    setTimeout(() => hint.remove(), 320);
+    localStorage.setItem('alter_rated_hint_shown', '1');
+  }
 }
 
 document.getElementById('card-next-btn').addEventListener('click', () => {
@@ -1782,7 +2076,7 @@ function renderCommitments() {
   commits = displayRecs.map(r => ({
     title: r.title,
     desc: r.action,
-    time: r.type === 'practical' ? 'Agent says · Do this' : r.type === 'social' ? 'Agent says · Meet someone' : 'Agent says · Sit with this'
+    time: r.type === 'practical' ? 'This week · Practical' : r.type === 'social' ? 'This week · Social' : 'This week · Reflective'
   }));
 
   document.getElementById('commitment-grid').innerHTML = commits.map((c, i) => `
@@ -1880,7 +2174,16 @@ document.getElementById('btn-draw').addEventListener('click', async () => {
   goTo('page-loading');
   startDispatchAnimation();
 
-  const report = await buildAgentReport(inputs);
+  // Change 3: kick off evidence feed in parallel with the main report call
+  const evidenceLinesPromise = fetchEvidenceLines(inputs);
+  startEvidenceFeed(evidenceLinesPromise);
+
+  const [report] = await Promise.all([
+    buildAgentReport(inputs),
+    evidenceLinesPromise.catch(() => null)  // don't block on evidence failure
+  ]);
+
+  stopEvidenceFeed();
 // Generate image in background — doesn't block
 
   // Show dispatch log on loading screen
