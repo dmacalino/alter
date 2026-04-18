@@ -1030,7 +1030,10 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
     <!-- Past Dispatches -->
     <div id="past-dispatches-section" style="display:none;width:100%;max-width:420px;margin-top:32px;">
       <div class="divider"></div>
-      <p style="font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);opacity:.6;text-align:center;margin-bottom:16px;">Past Dispatches</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <p style="font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);opacity:.6;margin:0;">Past Dispatches</p>
+        <button onclick="clearAllDispatches()" style="background:none;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:0;">Clear all</button>
+      </div>
       <div id="past-dispatches-list"></div>
     </div>
 
@@ -2276,6 +2279,19 @@ if (report.dispatch_log) {
 });
 
 // ── PAST DISPATCHES ──────────────────────────────────────────
+function deleteDispatch(id) {
+  try {
+    const prev = JSON.parse(localStorage.getItem('alter_dispatches') || '[]');
+    localStorage.setItem('alter_dispatches', JSON.stringify(prev.filter(d => d.id !== id)));
+  } catch(e) {}
+  renderPastDispatches();
+}
+
+function clearAllDispatches() {
+  try { localStorage.removeItem('alter_dispatches'); } catch(e) {}
+  renderPastDispatches();
+}
+
 function renderPastDispatches() {
   const section = document.getElementById('past-dispatches-section');
   const list = document.getElementById('past-dispatches-list');
@@ -2284,7 +2300,7 @@ function renderPastDispatches() {
   try { dispatches = JSON.parse(localStorage.getItem('alter_dispatches') || '[]'); } catch(e) {}
   if (!dispatches.length) { section.style.display = 'none'; return; }
   section.style.display = '';
-  list.innerHTML = dispatches.map((d, i) => {
+  list.innerHTML = dispatches.map((d) => {
     const date = new Date(d.date);
     const dateStr = date.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
     const cardHtml = (d.cards || []).map(c => `
@@ -2294,14 +2310,18 @@ function renderPastDispatches() {
       </div>`).join('');
     const verdictHtml = d.verdict ? `<div style="margin-top:10px;font-size:.8rem;color:var(--silver-2);font-style:italic;border-top:1px solid rgba(201,169,110,.12);padding-top:10px;">${d.verdict}</div>` : '';
     return `
-      <div style="background:rgba(201,169,110,.04);border:1px solid rgba(201,169,110,.15);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;cursor:pointer;" onclick="this.parentElement.querySelector('.dispatch-detail').style.display=this.parentElement.querySelector('.dispatch-detail').style.display==='none'?'block':'none'">
-          <div style="font-size:.85rem;color:var(--cream);line-height:1.4;">${d.manifestation || 'Dispatch'}</div>
-          <div style="font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.1em;color:var(--gold);opacity:.6;white-space:nowrap;margin-top:2px;">${dateStr}</div>
+      <div data-did="${d.id}" style="background:rgba(201,169,110,.04);border:1px solid rgba(201,169,110,.15);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div style="font-size:.85rem;color:var(--cream);line-height:1.4;cursor:pointer;flex:1;" onclick="this.closest('[data-did]').querySelector('.dispatch-detail').style.display=this.closest('[data-did]').querySelector('.dispatch-detail').style.display==='none'?'block':'none'">${d.manifestation || 'Dispatch'}</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+            <div style="font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.1em;color:var(--gold);opacity:.6;white-space:nowrap;">${dateStr}</div>
+            <button onclick="deleteDispatch(${d.id})" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.2);font-size:.85rem;padding:0;line-height:1;" title="Remove">✕</button>
+          </div>
         </div>
         <div class="dispatch-detail" style="display:none;margin-top:12px;">${cardHtml}${verdictHtml}</div>
       </div>`;
   }).join('');
+
 }
 
 // ── RESTART ──────────────────────────────────────────────────
