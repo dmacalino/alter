@@ -1025,6 +1025,13 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
     <button class="btn-ritual" onclick="goTo('page-input')"><span>Begin Your Reading →</span></button>
 
+    <!-- Past Dispatches -->
+    <div id="past-dispatches-section" style="display:none;width:100%;max-width:420px;margin-top:32px;">
+      <div class="divider"></div>
+      <p style="font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);opacity:.6;text-align:center;margin-bottom:16px;">Past Dispatches</p>
+      <div id="past-dispatches-list"></div>
+    </div>
+
   </div><!-- /page-onboard -->
 
 
@@ -1605,9 +1612,10 @@ function stopEvidenceFeed() {
 async function fetchEvidenceLines(inputs) {
   const prompt = `You are an AI agent returning from the future.
 Generate 8 short log lines (each under 12 words) describing evidence you collected while living this future: "${inputs.manifestation}".
-Each line should sound like a field observation being logged in real time.
-Examples: "Salary benchmarks logged for mid-level roles in this field", "Social connection frequency tracked: 3–4 meaningful exchanges per week".
-Return ONLY a JSON array of strings, no extra text.`;
+Context about this person: they want more of "${inputs.more_of}", they fear losing "${inputs.fear}", their values are ${inputs.values}.
+Make every line hyper-specific to THIS exact future — name real places, roles, costs, people types, and routines directly tied to "${inputs.manifestation}".
+Each line sounds like a field observation logged in real time, e.g. "Rent logged: €950/mo for T1 near Mouraria, Lisbon" or "Weekly co-working check-ins with 3 expat freelancers noted".
+Return ONLY a JSON array of 8 strings, no extra text.`;
 
   try {
     const response = await fetch("/api/agent", {
@@ -2203,12 +2211,57 @@ if (report.dispatch_log) {
   window.agentRecommendations = report.agent_recommendations || [];
   window.agentVerdict = report.verdict || '';
 
+  // Save dispatch to localStorage for past dispatches history
+  try {
+    const dispatch = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      manifestation: inputs.manifestation,
+      cards,
+      verdict: window.agentVerdict,
+      recommendations: window.agentRecommendations,
+    };
+    const prev = JSON.parse(localStorage.getItem('alter_dispatches') || '[]');
+    prev.unshift(dispatch);
+    localStorage.setItem('alter_dispatches', JSON.stringify(prev.slice(0, 20)));
+    renderPastDispatches();
+  } catch(e) {}
+
   // Small delay so loading screen feels intentional
   setTimeout(() => {
     goTo('page-sim');
     setTimeout(() => renderCard(0), 420);
   }, 600);
 });
+
+// ── PAST DISPATCHES ──────────────────────────────────────────
+function renderPastDispatches() {
+  const section = document.getElementById('past-dispatches-section');
+  const list = document.getElementById('past-dispatches-list');
+  if (!section || !list) return;
+  let dispatches = [];
+  try { dispatches = JSON.parse(localStorage.getItem('alter_dispatches') || '[]'); } catch(e) {}
+  if (!dispatches.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  list.innerHTML = dispatches.map((d, i) => {
+    const date = new Date(d.date);
+    const dateStr = date.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    const cardHtml = (d.cards || []).map(c => `
+      <div style="border-top:1px solid rgba(201,169,110,.12);padding:10px 0;">
+        <div style="font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.1em;color:var(--gold);margin-bottom:4px;">${c.title || ''}</div>
+        <div style="font-size:.8rem;color:var(--silver-2);line-height:1.5;">${c.finding || ''}</div>
+      </div>`).join('');
+    const verdictHtml = d.verdict ? `<div style="margin-top:10px;font-size:.8rem;color:var(--silver-2);font-style:italic;border-top:1px solid rgba(201,169,110,.12);padding-top:10px;">${d.verdict}</div>` : '';
+    return `
+      <div style="background:rgba(201,169,110,.04);border:1px solid rgba(201,169,110,.15);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;cursor:pointer;" onclick="this.parentElement.querySelector('.dispatch-detail').style.display=this.parentElement.querySelector('.dispatch-detail').style.display==='none'?'block':'none'">
+          <div style="font-size:.85rem;color:var(--cream);line-height:1.4;">${d.manifestation || 'Dispatch'}</div>
+          <div style="font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.1em;color:var(--gold);opacity:.6;white-space:nowrap;margin-top:2px;">${dateStr}</div>
+        </div>
+        <div class="dispatch-detail" style="display:none;margin-top:12px;">${cardHtml}${verdictHtml}</div>
+      </div>`;
+  }).join('');
+}
 
 // ── RESTART ──────────────────────────────────────────────────
 function restartReading() {
@@ -2227,6 +2280,9 @@ function restartReading() {
 
   goTo('page-input');
 }
+
+// Render past dispatches on initial load
+renderPastDispatches();
 </script>
 </body>
 </html>
