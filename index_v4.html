@@ -560,7 +560,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
 .card-scene {
   width:calc(100% - 48px); max-width:400px;
-  height:min(720px, 84vh);
+  height:min(800px, 90vh);
   perspective:1200px; cursor:pointer; position:relative; margin:0 auto;
 }
 
@@ -1565,7 +1565,25 @@ const PLACEHOLDER_EVIDENCE = [
   'Reviewing belonging data…',
 ];
 
-function startEvidenceFeed(linesPromise) {
+function buildPlaceholderLines(inputs) {
+  if (!inputs || !inputs.manifestation) return PLACEHOLDER_EVIDENCE;
+  const m = inputs.manifestation;
+  const more = inputs.more_of || '';
+  const fear = inputs.fear || '';
+  const vals = inputs.values || '';
+  return [
+    `Entering the world of: ${m.length > 38 ? m.slice(0,38)+'…' : m}`,
+    more  ? `Tracking signals for more ${more.slice(0,32)}…`         : 'Logging daily pattern data…',
+    `Mapping social networks & belonging…`,
+    fear  ? `Stress-testing risk around ${fear.slice(0,30)}…`        : 'Measuring friction & tradeoffs…',
+    vals  ? `Cross-referencing values: ${vals.slice(0,35)}…`         : 'Analysing values alignment…',
+    `Compiling cost-of-living indicators…`,
+    `Reviewing community density data…`,
+    more  ? `Logging ${more.slice(0,30)} frequency metrics…`         : 'Reviewing belonging & identity data…',
+  ];
+}
+
+function startEvidenceFeed(linesPromise, inputs) {
   const feed = document.getElementById('evidence-feed');
   if (!feed) return;
 
@@ -1578,11 +1596,13 @@ function startEvidenceFeed(linesPromise) {
   let resolvedLines = null;
   let displayedCount = 0;
 
+  const placeholders = buildPlaceholderLines(inputs);
+
   // Show placeholder lines while waiting
   function showNextLine() {
     const text = resolvedLines
       ? (resolvedLines[displayedCount] || null)
-      : PLACEHOLDER_EVIDENCE[lineIndex % PLACEHOLDER_EVIDENCE.length];
+      : placeholders[lineIndex % placeholders.length];
 
     if (!text) return;
 
@@ -2205,7 +2225,7 @@ document.getElementById('btn-draw').addEventListener('click', async () => {
 
   // Change 3: kick off evidence feed in parallel with the main report call
   const evidenceLinesPromise = fetchEvidenceLines(inputs);
-  startEvidenceFeed(evidenceLinesPromise);
+  startEvidenceFeed(evidenceLinesPromise, inputs);
 
   const [report] = await Promise.all([
     buildAgentReport(inputs),
