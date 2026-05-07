@@ -685,8 +685,8 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
   animation: cardGlow 4s ease-in-out infinite alternate;
 }
 @keyframes cardGlow {
-  from { box-shadow: 0 2px 0 rgba(201,169,110,.2), 0 24px 60px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07), 0 0 40px rgba(201,169,110,.04); }
-  to   { box-shadow: 0 2px 0 rgba(201,169,110,.2), 0 24px 60px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07), 0 0 80px rgba(201,169,110,.13); }
+  from { box-shadow: 0 2px 0 currentColor, 0 24px 60px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07), 0 0 40px var(--glow-from, rgba(201,169,110,.04)); }
+  to   { box-shadow: 0 2px 0 currentColor, 0 24px 60px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07), 0 0 80px var(--glow-to,   rgba(201,169,110,.13)); }
 }
 
 .card-scene-art {
@@ -1681,6 +1681,21 @@ const ACCENTS = [
   'linear-gradient(90deg,#a97880,#c4909a)',
   'linear-gradient(90deg,#5e9e95,#3e7e78)',
 ];
+const FRONT_BG = [
+  'radial-gradient(ellipse 90% 65% at 50% 55%, rgba(201,169,110,.22) 0%, rgba(19,21,26,.98) 65%), linear-gradient(160deg, #16181f 0%, #0e0f13 100%)',
+  'radial-gradient(ellipse 90% 65% at 50% 55%, rgba(169,120,128,.26) 0%, rgba(19,21,26,.98) 65%), linear-gradient(160deg, #16181f 0%, #0e0f13 100%)',
+  'radial-gradient(ellipse 90% 65% at 50% 55%, rgba(94,158,149,.22) 0%, rgba(19,21,26,.98) 65%), linear-gradient(160deg, #16181f 0%, #0e0f13 100%)',
+];
+const FRONT_BORDER = [
+  'rgba(201,169,110,.35)',
+  'rgba(169,120,128,.4)',
+  'rgba(94,158,149,.35)',
+];
+const FRONT_GLOW = [
+  ['rgba(201,169,110,.04)', 'rgba(201,169,110,.13)'],
+  ['rgba(169,120,128,.04)', 'rgba(169,120,128,.13)'],
+  ['rgba(94,158,149,.04)',  'rgba(94,158,149,.13)'],
+];
 const FRONT_TITLES = [
   'A day in your future life',
   'The people around you',
@@ -2242,6 +2257,16 @@ function renderCard(idx) {
         <p class="card-tap-hint">Tap to read</p>
       </div>
     `;
+
+    front.style.background = FRONT_BG[idx];
+    front.style.borderColor = FRONT_BORDER[idx];
+    front.style.animation = 'none';
+    front.style.boxShadow = `0 2px 0 ${FRONT_BORDER[idx]}, 0 24px 60px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07)`;
+    requestAnimationFrame(() => {
+      front.style.animation = '';
+      front.style.setProperty('--glow-from', FRONT_GLOW[idx][0]);
+      front.style.setProperty('--glow-to',   FRONT_GLOW[idx][1]);
+    });
 
     const saved = ratings[idx];
     const ratingHTML = [1,2,3,4,5].map(n =>
