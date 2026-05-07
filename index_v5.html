@@ -807,6 +807,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 .r-btn {
   width:28px; height:28px; border-radius:50%;
   border:1px solid var(--silver-3); background:transparent;
+  font-family:'Outfit', sans-serif, 'Apple Color Emoji', sans-serif;
   font-size:.95rem; line-height:1;
   color:var(--silver-2); cursor:pointer; transition:all var(--tr-fast);
   display:flex; align-items:center; justify-content:center;
@@ -2152,7 +2153,7 @@ function renderCard(idx) {
 
     const saved = ratings[idx];
     const ratingHTML = [1,2,3,4,5].map(n =>
-      `<button class="r-btn ${saved===n?'sel':''}" data-r="${n}" onclick="setRating(${idx},${n})">★</button>`
+      `<button class="r-btn ${saved!==null&&n<=saved?'sel':''}" data-r="${n}" onclick="setRating(${idx},${n})">★</button>`
     ).join('');
 
     // Change 5: swipe hint tooltip on first card only
@@ -2209,7 +2210,7 @@ function setRating(idx, r) {
   const key = `report_${idx + 1}`;
   resonanceRatings[key] = r;
   document.querySelectorAll('#card-back .r-btn').forEach(b =>
-    b.classList.toggle('sel', +b.dataset.r === r)
+    b.classList.toggle('sel', +b.dataset.r <= r)
   );
   // Change 5: dismiss swipe hint on first rating interaction
   const hint = document.getElementById('swipe-hint-overlay');
