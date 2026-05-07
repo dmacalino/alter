@@ -77,6 +77,103 @@ html { height:100%; }
   color: var(--teal);
 }
 
+/* ── VOICE-CENTRIC CARD BACK ── */
+.voice-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0 4px;
+}
+
+.voice-waveform {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+}
+
+.voice-bar {
+  width: 3px;
+  border-radius: 99px;
+  background: var(--gold);
+  opacity: .3;
+  transform-origin: center;
+  transition: opacity .3s ease;
+}
+
+.voice-waveform.playing .voice-bar {
+  opacity: .75;
+  animation: waveAnim 1s ease-in-out infinite alternate;
+}
+
+.voice-waveform.playing .voice-bar:nth-child(2n)   { animation-delay: .15s; }
+.voice-waveform.playing .voice-bar:nth-child(3n)   { animation-delay: .3s; }
+.voice-waveform.playing .voice-bar:nth-child(4n)   { animation-delay: .45s; }
+
+@keyframes waveAnim {
+  from { transform: scaleY(.35); }
+  to   { transform: scaleY(1); }
+}
+
+.voice-play-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  background: var(--gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--tr-med);
+  box-shadow: 0 0 24px rgba(201,169,110,.1);
+}
+
+.voice-play-btn:hover {
+  background: rgba(201,169,110,.22);
+  box-shadow: 0 0 32px rgba(201,169,110,.22);
+}
+
+.voice-play-btn.loading {
+  opacity: .45;
+  cursor: wait;
+}
+
+.voice-play-btn.playing {
+  border-color: var(--teal);
+  background: rgba(94,158,149,.1);
+  box-shadow: 0 0 32px rgba(94,158,149,.18);
+}
+
+.voice-play-icon {
+  font-size: 1.5rem;
+  color: var(--gold);
+  line-height: 1;
+  margin-left: 4px;
+}
+
+.voice-play-btn.playing .voice-play-icon {
+  color: var(--teal);
+  margin-left: 0;
+}
+
+.voice-label {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: .62rem;
+  letter-spacing: .1em;
+  color: var(--gold);
+  opacity: .6;
+}
+
+.voice-finding {
+  font-family: 'Crimson Pro', serif;
+  font-size: .84rem;
+  font-weight: 300;
+  color: rgba(255,255,255,.4);
+  line-height: 1.75;
+}
+
 body {
   font-family:'Outfit', sans-serif;
   font-weight:300;
@@ -578,12 +675,18 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 }
 
 .card-front {
-  background:var(--ink-2);
-  border:1px solid rgba(201,169,110,.22);
+  background: radial-gradient(ellipse 90% 65% at 50% 55%, rgba(201,169,110,.22) 0%, rgba(19,21,26,.98) 65%),
+              linear-gradient(160deg, #16181f 0%, #0e0f13 100%);
+  border:1px solid rgba(201,169,110,.35);
   display:flex; flex-direction:column;
   align-items:center; justify-content:space-between;
   padding:28px 22px;
-  box-shadow:0 2px 0 rgba(201,169,110,.12),0 24px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow:0 2px 0 rgba(201,169,110,.2),0 24px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.07);
+  animation: cardGlow 4s ease-in-out infinite alternate;
+}
+@keyframes cardGlow {
+  from { box-shadow: 0 2px 0 rgba(201,169,110,.2), 0 24px 60px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07), 0 0 40px rgba(201,169,110,.04); }
+  to   { box-shadow: 0 2px 0 rgba(201,169,110,.2), 0 24px 60px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07), 0 0 80px rgba(201,169,110,.13); }
 }
 
 .card-scene-art {
@@ -1934,21 +2037,32 @@ const VOICE_ID = 'ROMJ9yK1NAMuu1ggrjDW';
 // ── IMAGE GENERATION ─────────────────────────────────────────
 
 async function speakReport(idx) {
-  const btn = document.getElementById(`voice-btn-${idx}`);
+  const btn      = document.getElementById(`voice-btn-${idx}`);
+  const icon     = btn ? btn.querySelector('.voice-play-icon') : null;
+  const label    = document.getElementById(`voice-label-${idx}`);
+  const waveform = document.getElementById(`waveform-${idx}`);
   const c = cards[idx];
+
+  const resetUI = () => {
+    if (btn)      { btn.className = 'voice-play-btn'; }
+    if (icon)     { icon.textContent = '▶'; }
+    if (label)    { label.textContent = 'Listen to Report'; }
+    if (waveform) { waveform.classList.remove('playing'); }
+  };
 
   // If already playing, stop
   if (currentAudio && !currentAudio.paused) {
     currentAudio.pause();
     currentAudio = null;
-    if (btn) { btn.textContent = '▶ Hear this report'; btn.className = 'voice-btn'; }
+    resetUI();
     return;
   }
 
   // Build the text — signal then finding
   const text = `${c.signal}. ${c.finding}`;
 
-  if (btn) { btn.textContent = '… Dispatching voice'; btn.className = 'voice-btn loading'; }
+  if (btn)   { btn.className = 'voice-play-btn loading'; }
+  if (label) { label.textContent = 'Dispatching…'; }
 
   try {
     const response = await fetch('/api/speak', {
@@ -1963,16 +2077,17 @@ async function speakReport(idx) {
     const audioUrl = URL.createObjectURL(audioBlob);
     currentAudio = new Audio(audioUrl);
 
-    currentAudio.onended = () => {
-      if (btn) { btn.textContent = '▶ Hear this report'; btn.className = 'voice-btn'; }
-    };
+    currentAudio.onended = () => { resetUI(); };
 
-    if (btn) { btn.textContent = '◼ Stop'; btn.className = 'voice-btn playing'; }
+    if (btn)      { btn.className = 'voice-play-btn playing'; }
+    if (icon)     { icon.textContent = '◼'; }
+    if (label)    { label.textContent = 'Playing…'; }
+    if (waveform) { waveform.classList.add('playing'); }
     currentAudio.play();
 
   } catch (err) {
     console.error('Voice error:', err);
-    if (btn) { btn.textContent = '▶ Hear this report'; btn.className = 'voice-btn'; }
+    resetUI();
   }
 }
 
@@ -2007,27 +2122,27 @@ function renderCard(idx) {
     // Allow natural transform again after reset
     card3d.style.transform = '';
 
+    const waveHeights = [4,8,14,10,20,6,18,12,22,8,16,10,20,6,14,10,18,8,12,4];
+    const waveformBars = waveHeights.map(h => `<div class="voice-bar" style="height:${h}px"></div>`).join('');
+
     const front = document.getElementById('card-front');
-    front.innerHTML = '';
-
-    const tpl = document.getElementById(SCENE_TPLS[idx]);
-    const clone = tpl.content.cloneNode(true);
-    front.appendChild(clone);
-
-    const topDiv = document.createElement('div');
-    topDiv.className = 'card-front-top';
-    topDiv.innerHTML = `<span class="card-snapshot-label">Field Report</span><span class="card-snapshot-num">${INV_ROMAN[idx]}</span>`;
-
-    const ornament = document.createElement('div');
-    ornament.className = 'card-ornament';
-
-    const botDiv = document.createElement('div');
-    botDiv.className = 'card-front-bottom';
-    botDiv.innerHTML = `<p class="card-atmospheric-title">${FRONT_TITLES[idx]}</p><p class="card-tap-hint">Tap to reveal</p>`;
-
-    front.appendChild(topDiv);
-    front.appendChild(ornament);
-    front.appendChild(botDiv);
+    front.innerHTML = `
+      <div class="card-front-top">
+        <span class="card-snapshot-label">Field Report</span>
+        <span class="card-snapshot-num">${INV_ROMAN[idx]}</span>
+      </div>
+      <div class="voice-center" style="flex:1;justify-content:center;">
+        <div class="voice-waveform" id="waveform-${idx}">${waveformBars}</div>
+        <button class="voice-play-btn" id="voice-btn-${idx}" onclick="speakReport(${idx}); event.stopPropagation();">
+          <span class="voice-play-icon">▶</span>
+        </button>
+        <span class="voice-label" id="voice-label-${idx}">Listen to Report</span>
+      </div>
+      <div class="card-front-bottom">
+        <p class="card-atmospheric-title">${FRONT_TITLES[idx]}</p>
+        <p class="card-tap-hint">Tap to read</p>
+      </div>
+    `;
 
     const saved = ratings[idx];
     const ratingHTML = [1,2,3,4,5].map(n =>
@@ -2050,9 +2165,6 @@ function renderCard(idx) {
         <p class="card-back-title">${c.title}</p>
         <p class="card-signal">${c.signal || ''}</p>
         ${c.pattern ? `<div class="pattern-chip">${c.pattern}</div>` : ''}
-        <button class="voice-btn" id="voice-btn-${idx}" onclick="speakReport(${idx})">
-        ▶ Hear this report
-        </button>
         <div style="border-top:1px solid var(--silver-3);"></div>
         <p class="card-finding">${c.finding}</p>
         <div style="border-top:1px solid var(--silver-3);"></div>
