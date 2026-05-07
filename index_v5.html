@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><radialGradient id='g' cx='50%25' cy='50%25' r='50%25'><stop offset='0%25' stop-color='%23e8c98a'/><stop offset='100%25' stop-color='%23c9a96e'/></radialGradient></defs><path d='M16 2l3 10.5L29 16l-10 3.5L16 30l-3-10.5L3 16l10-3.5z' fill='url(%23g)'/></svg>"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet"/>
 
 <style>
 :root {
@@ -1057,6 +1057,57 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
   .signal-form { padding:20px 16px; }
   .slider-row { grid-template-columns:58px 1fr 58px; }
 }
+
+/* ============================================================
+   PAGE — EXPANDERS
+   ============================================================ */
+#page-expanders { padding-top:60px; gap:24px; }
+
+.expanders-headline {
+  font-family: 'Cormorant Garamond', 'Crimson Pro', serif;
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+  font-weight: 300;
+  font-style: italic;
+  color: rgba(255,255,255,.92);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.expander-cards {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.expander-card {
+  width: 100%;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--silver-3);
+  border-left: 3px solid rgba(201,169,110,.55);
+  border-radius: var(--r-card);
+  padding: 20px 20px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.expander-quote {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1rem;
+  font-weight: 300;
+  font-style: italic;
+  color: rgba(255,255,255,.82);
+  line-height: 1.75;
+}
+
+.expander-source {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: .6rem;
+  letter-spacing: .1em;
+  color: var(--gold);
+  opacity: .6;
+}
 </style>
 </head>
 
@@ -1370,10 +1421,51 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
       <p class="reading-text" id="verdict-text">—</p>
     </div>
   </div>
-  <button class="btn-ritual" onclick="renderCommitments(); goTo('page-commitment')">
-    <span>See Recommendations →</span>
+  <button class="btn-ritual" onclick="goTo('page-expanders')">
+    <span>Continue →</span>
   </button>
 </div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE — EXPANDERS
+     ═══════════════════════════════════════════════ -->
+<div class="page" id="page-expanders">
+
+  <div style="height:10px"></div>
+  <div class="mark">Field Intelligence</div>
+  <div class="divider"></div>
+
+  <p class="expanders-headline">Others have been here.</p>
+
+  <p class="body-text" style="font-size:.88rem;max-width:340px;">
+    Real accounts from people who made the same leap.<br/>
+    <em style="font-family:'Crimson Pro',serif;color:var(--gold);opacity:.8;">You are not the first to stand at this edge.</em>
+  </p>
+
+  <div class="expander-cards">
+
+    <div class="expander-card">
+      <p class="expander-quote">"I spent six months convinced I needed to stay for the opportunities. I moved anyway. The opportunities followed. The ones worth having always do."</p>
+      <span class="expander-source">r/digitalnomad</span>
+    </div>
+
+    <div class="expander-card">
+      <p class="expander-quote">"I kept waiting to feel ready. Scripted it every morning for four months. Then one day I just did it — quit, booked the flight, told no one until I landed. It was exactly how I'd imagined."</p>
+      <span class="expander-source">r/lawofattraction</span>
+    </div>
+
+    <div class="expander-card">
+      <p class="expander-quote">"The version of me I was calling in had already made the decision. I just had to catch up to her."</p>
+      <span class="expander-source">r/manifestation</span>
+    </div>
+
+  </div>
+
+  <button class="btn-ritual" onclick="renderCommitments(); goTo('page-commitment')">
+    <span>See What the Agent Recommends →</span>
+  </button>
+
+</div><!-- /page-expanders -->
 
   <!-- ═══════════════════════════════════════════════
        PAGE 4 — AGENT RECOMMENDATIONS
