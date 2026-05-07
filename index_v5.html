@@ -2209,9 +2209,10 @@ function setRating(idx, r) {
   ratings[idx] = r;
   const key = `report_${idx + 1}`;
   resonanceRatings[key] = r;
-  document.querySelectorAll('#card-back .r-btn').forEach(b =>
-    b.classList.toggle('sel', +b.dataset.r <= r)
-  );
+  document.querySelectorAll('#card-back .r-btn').forEach(b => {
+    if (+b.dataset.r <= r) b.classList.add('sel');
+    else b.classList.remove('sel');
+  });
   // Change 5: dismiss swipe hint on first rating interaction
   const hint = document.getElementById('swipe-hint-overlay');
   if (hint) {
