@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>ALTER — Future Reading</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><radialGradient id='g' cx='50%25' cy='50%25' r='50%25'><stop offset='0%25' stop-color='%23e8c98a'/><stop offset='100%25' stop-color='%23c9a96e'/></radialGradient></defs><path d='M16 2l3 10.5L29 16l-10 3.5L16 30l-3-10.5L3 16l10-3.5z' fill='url(%23g)'/></svg>"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+<style>
+:root {
+  --ink:       #0c0d10;
+  --ink-2:     #13151a;
+  --ink-3:     #1c1f27;
+  --gold:      #c9a96e;
+  --gold-2:    #e8c98a;
+  --gold-dim:  rgba(201,169,110,.18);
+  --gold-glow: rgba(201,169,110,.08);
+  --silver:    rgba(255,255,255,.75);
+  --silver-2:  rgba(255,255,255,.50);
+  --silver-3:  rgba(255,255,255,.12);
+  --silver-4:  rgba(255,255,255,.06);
+  --rose:      #b87070;
+  --teal:      #5e9e95;
+  --tr-slow:   .6s cubic-bezier(.4,0,.2,1);
+  --tr-med:    .35s cubic-bezier(.4,0,.2,1);
+  --tr-fast:   .2s cubic-bezier(.4,0,.2,1);
+  --r-card:    20px;
+  --r-pill:    99px;
+  --r-sm:      10px;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
+html { height:100%; }
+
+.pattern-chip {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: .62rem;
+  font-weight: 300;
+  color: var(--teal);
+  border: 1px solid rgba(94,158,149,.3);
+  background: rgba(94,158,149,.06);
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  letter-spacing: .08em;
+}
+
+.voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(201,169,110,.35);
+  border-radius: var(--r-pill);
+  font-family: 'Cinzel', serif;
+  font-size: .6rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all var(--tr-med);
+}
+.voice-btn:hover {
+  background: var(--gold-dim);
+  border-color: rgba(201,169,110,.6);
+}
+.voice-btn.loading {
+  opacity: .5;
+  cursor: wait;
+}
+.voice-btn.playing {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+body {
+  font-family:'Outfit', sans-serif;
+  font-weight:300;
+  color:rgba(255,255,255,.88);
+  background: var(--ink);
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor:default;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:0;
+  pointer-events:none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+  opacity:.6;
+}
+
+body::after {
+  content:'';
+  position:fixed; inset:0; z-index:0;
+  pointer-events:none;
+  background: radial-gradient(ellipse 70% 60% at 50% 40%, transparent 40%, rgba(0,0,0,.6) 100%);
+}
+
+.app {
+  position:relative; z-index:1;
+  min-height:100vh;
+  display:flex; flex-direction:column; align-items:center;
+}
+
+.page {
+  width:100%; max-width:520px;
+  padding:40px 24px 60px;
+  min-height:100vh;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  gap:28px;
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity .5s ease, transform .5s ease;
+}
+.page.active {
+  display:flex;
+  opacity:1;
+  transform:translateY(0);
+}
+.page.entering {
+  opacity:0;
+  transform:translateY(16px);
+}
+
+.mark {
+  font-family:'Cinzel', serif;
+  font-size:.62rem;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--gold);
+  opacity:.7;
+  text-align:center;
+  margin-bottom:-8px;
+}
+
+.divider {
+  width:60px; height:1px;
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity:.4;
+  flex-shrink:0;
+}
+.divider.wide { width:100%; opacity:.15; }
+
+h1.ritual-title {
+  font-family:'Cinzel', serif;
+  font-size:clamp(2.4rem,7vw,3.4rem);
+  font-weight:500;
+  letter-spacing:.06em;
+  text-align:center;
+  line-height:1.2;
+  color:rgba(255,255,255,.95);
+}
+h1.ritual-title em {
+  font-style:italic;
+  color:var(--gold);
+  font-family:'Crimson Pro', serif;
+  font-size:1.1em;
+}
+
+h2.section-title {
+  font-family:'Cinzel', serif;
+  font-size:1rem;
+  font-weight:500;
+  letter-spacing:.12em;
+  color:var(--gold);
+  text-align:center;
+}
+
+p.body-text {
+  font-family:'Crimson Pro', serif;
+  font-size:1rem;
+  font-weight:300;
+  color:var(--silver);
+  line-height:1.8;
+  text-align:center;
+}
+p.body-text.left { text-align:left; }
+
+.btn-ritual {
+  position:relative;
+  padding:14px 36px;
+  background:transparent;
+  border:1px solid var(--gold);
+  border-radius:var(--r-pill);
+  font-family:'Cinzel', serif;
+  font-size:.72rem;
+  font-weight:500;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--gold);
+  cursor:pointer;
+  transition:all var(--tr-med);
+  overflow:hidden;
+}
+.btn-ritual::before {
+  content:'';
+  position:absolute; inset:0;
+  background:var(--gold);
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform var(--tr-med);
+  z-index:0;
+}
+.btn-ritual:hover::before { transform:scaleX(1); }
+.btn-ritual:hover { color:var(--ink); }
+.btn-ritual span { position:relative; z-index:1; }
+
+.btn-ghost {
+  background:transparent;
+  border:none;
+  font-family:'Outfit', sans-serif;
+  font-size:.78rem;
+  color:var(--silver-2);
+  cursor:pointer;
+  letter-spacing:.06em;
+  transition:color var(--tr-fast);
+  padding:6px 0;
+}
+.btn-ghost:hover { color:var(--silver); }
+
+/* ============================================================
+   PAGE 0 — ONBOARDING
+   ============================================================ */
+#page-onboard {
+  justify-content:center;
+  padding-top:80px;
+  gap:32px;
+}
+
+.onboard-glyph {
+  font-size:2.8rem;
+  text-align:center;
+  filter:drop-shadow(0 0 18px rgba(201,169,110,.35));
+  animation:glyphPulse 3s ease-in-out infinite alternate;
+}
+
+.onboard-steps {
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.onboard-step {
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  padding:18px 20px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--silver-3);
+  border-radius:var(--r-card);
+}
+
+.onboard-step-num {
+  font-family:'Cinzel', serif;
+  font-size:.65rem;
+  letter-spacing:.2em;
+  color:var(--gold);
+  opacity:.7;
+  flex-shrink:0;
+  padding-top:2px;
+  min-width:24px;
+}
+
+.onboard-step-body {}
+
+.onboard-step-title {
+  font-family:'Cinzel', serif;
+  font-size:.78rem;
+  letter-spacing:.08em;
+  color:rgba(255,255,255,.9);
+  margin-bottom:5px;
+}
+
+.onboard-step-desc {
+  font-family:'Crimson Pro', serif;
+  font-size:.9rem;
+  font-weight:300;
+  color:var(--silver);
+  line-height:1.6;
+}
+
+.onboard-caveat {
+  font-family:'Crimson Pro', serif;
+  font-size:.82rem;
+  font-style:italic;
+  color:var(--silver-2);
+  text-align:center;
+  line-height:1.7;
+  max-width:360px;
+}
+
+/* ============================================================
+   PAGE 1 — INPUT
+   ============================================================ */
+#page-input { justify-content:center; padding-top:60px; }
+
+.input-header { text-align:center; }
+.input-header .eyebrow {
+  font-family:'Cinzel', serif;
+  font-size:.58rem;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--gold);
+  opacity:.6;
+  margin-bottom:20px;
+  display:block;
+}
+
+.signal-form {
+  width:100%;
+  background: linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border:1px solid var(--silver-3);
+  border-radius:var(--r-card);
+  padding:28px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.field { display:flex; flex-direction:column; gap:7px; }
+.field-label {
+  font-family:'Cinzel', serif;
+  font-size:.58rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--gold);
+  opacity:.65;
+}
+.field input {
+  background:var(--silver-4);
+  border:1px solid var(--silver-3);
+  border-radius:var(--r-sm);
+  padding:12px 14px;
+  font-family:'Crimson Pro', serif;
+  font-size:.97rem;
+  font-weight:300;
+  color:rgba(255,255,255,.88);
+  outline:none;
+  transition:border-color var(--tr-med), background var(--tr-med);
+}
+.field input::placeholder { color:var(--silver-2); }
+.field input:focus { border-color:rgba(201,169,110,.5); background:rgba(201,169,110,.04); }
+
+.form-divider { border:none; border-top:1px solid var(--silver-3); margin:4px 0; }
+
+.slider-stack { display:flex; flex-direction:column; gap:14px; }
+.slider-row { display:grid; grid-template-columns:72px 1fr 72px; align-items:center; gap:10px; }
+.sl-l { text-align:right; font-size:.75rem; color:var(--silver-2); }
+.sl-r { text-align:left;  font-size:.75rem; color:var(--silver-2); }
+input[type="range"] {
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:2px; border-radius:99px;
+  background:rgba(201,169,110,.55); outline:none; cursor:pointer;
+  touch-action: none;
+}
+input[type="range"]::-webkit-slider-runnable-track { height:2px; border-radius:99px; background:rgba(201,169,110,.55); }
+input[type="range"]::-moz-range-track { height:2px; border-radius:99px; background:rgba(201,169,110,.55); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none;
+  width:16px; height:16px; border-radius:50%;
+  background:var(--gold); box-shadow:0 0 0 3px rgba(201,169,110,.2);
+  border:none; margin-top:-7px; cursor:pointer; transition:transform var(--tr-fast);
+}
+input[type="range"]::-moz-range-thumb {
+  width:16px; height:16px; border-radius:50%;
+  background:var(--gold); box-shadow:0 0 0 3px rgba(201,169,110,.2);
+  border:none; cursor:pointer; transition:transform var(--tr-fast);
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform:scale(1.2); }
+input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
+
+.chip-row { display:flex; flex-wrap:wrap; gap:7px; }
+.vchip {
+  cursor:pointer; padding:6px 14px; border-radius:var(--r-pill);
+  border:1px solid var(--silver-3); background:transparent;
+  font-family:'Outfit', sans-serif; font-size:.78rem;
+  color:var(--silver-2); transition:all var(--tr-fast); user-select:none;
+}
+.vchip:hover { border-color:var(--gold); color:var(--gold); }
+.vchip.on { background:var(--gold); border-color:var(--gold); color:var(--ink); font-weight:500; }
+.chip-hint { font-size:.7rem; color:var(--silver-2); opacity:.6; }
+.form-error { font-size:.78rem; color:var(--rose); text-align:center; display:none; }
+
+/* ============================================================
+   PAGE 2 — INTERPRETATION
+   ============================================================ */
+#page-interp { padding-top:60px; }
+
+.interp-glyph {
+  font-family:'Crimson Pro', serif;
+  font-size:3rem; font-style:italic;
+  color:var(--gold); opacity:.5; text-align:center; line-height:1;
+}
+
+.reading-card {
+  width:100%;
+  background:linear-gradient(145deg, rgba(201,169,110,.07), rgba(201,169,110,.02));
+  border:1px solid rgba(201,169,110,.25);
+  border-radius:var(--r-card);
+  padding:28px 24px;
+  display:flex; flex-direction:column; gap:18px;
+}
+.reading-block-label {
+  font-family:'Cinzel', serif;
+  font-size:.56rem; letter-spacing:.25em; text-transform:uppercase;
+  color:var(--gold); opacity:.55; margin-bottom:7px; display:block;
+}
+.reading-text {
+  font-family:'Crimson Pro', serif;
+  font-size:1rem; font-weight:300; font-style:italic;
+  color:rgba(255,255,255,.8); line-height:1.75;
+}
+
+.tension-set { display:flex; flex-direction:column; gap:11px; }
+.tension-poles { display:flex; justify-content:space-between; font-size:.72rem; color:var(--silver-2); margin-bottom:5px; }
+.tension-track { height:3px; background:var(--silver-3); border-radius:99px; overflow:hidden; }
+.tension-fill { height:100%; border-radius:99px; background:linear-gradient(90deg, var(--gold), var(--gold-2)); transition:width 1.2s cubic-bezier(.4,0,.2,1); }
+
+.emph-set { display:flex; flex-wrap:wrap; gap:7px; }
+.emph-chip { padding:5px 12px; border-radius:var(--r-pill); font-size:.72rem; font-weight:400; border:1px solid var(--silver-3); color:var(--silver-2); }
+.emph-chip.gold { border-color:rgba(201,169,110,.4); color:var(--gold); background:rgba(201,169,110,.07); }
+.emph-chip.teal { border-color:rgba(94,158,149,.4); color:var(--teal); background:rgba(94,158,149,.07); }
+.emph-chip.rose { border-color:rgba(184,112,112,.4); color:var(--rose); background:rgba(184,112,112,.07); }
+
+.begin-hint {
+  font-family:'Cinzel', serif; font-size:.6rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--silver-2); text-align:center; opacity:.5;
+}
+
+/* ============================================================
+   PAGE — LOADING / DISPATCH
+   ============================================================ */
+#page-loading {
+  justify-content:flex-start;
+  align-items:center;
+  gap:32px;
+  padding-top:48px;
+  overflow-y:auto;
+}
+
+.dispatch-container {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:28px;
+  width:100%;
+  max-width:380px;
+}
+
+.dispatch-orb {
+  width:80px; height:80px;
+  border-radius:50%;
+  border:1px solid rgba(201,169,110,.3);
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+}
+.dispatch-orb::before {
+  content:'';
+  position:absolute; inset:-8px;
+  border-radius:50%;
+  border:1px solid rgba(201,169,110,.1);
+  animation:orbPulse 2s ease-in-out infinite;
+}
+.dispatch-orb::after {
+  content:'';
+  position:absolute; inset:-16px;
+  border-radius:50%;
+  border:1px solid rgba(201,169,110,.05);
+  animation:orbPulse 2s .4s ease-in-out infinite;
+}
+@keyframes orbPulse {
+  0%,100% { transform:scale(1); opacity:1; }
+  50% { transform:scale(1.08); opacity:.5; }
+}
+.dispatch-icon {
+  font-size:2rem;
+  animation:iconFloat 3s ease-in-out infinite alternate;
+}
+@keyframes iconFloat {
+  from { transform:translateY(0); }
+  to { transform:translateY(-4px); }
+}
+
+.dispatch-log {
+  width:100%;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--silver-3);
+  border-radius:var(--r-card);
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.log-line {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  opacity:0;
+  transform:translateY(6px);
+  transition:opacity .5s ease, transform .5s ease;
+}
+.log-line.visible {
+  opacity:1;
+  transform:translateY(0);
+}
+.log-dot {
+  width:6px; height:6px;
+  border-radius:50%;
+  background:var(--silver-3);
+  flex-shrink:0;
+  transition:background .3s ease;
+}
+.log-dot.active { background:var(--gold); box-shadow:0 0 6px rgba(201,169,110,.5); }
+.log-dot.done { background:var(--teal); }
+.log-text {
+  font-family:'Cinzel', serif;
+  font-size:.6rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--silver-2);
+}
+.log-text.active { color:var(--gold); }
+.log-text.done { color:var(--silver-2); }
+
+.dispatch-status {
+  font-family:'Crimson Pro', serif;
+  font-size:.95rem;
+  font-style:italic;
+  color:var(--silver-2);
+  text-align:center;
+  line-height:1.7;
+  animation:statusFade 3s ease-in-out infinite;
+}
+@keyframes statusFade { 0%,100%{opacity:.5;} 50%{opacity:.9;} }
+
+/* ============================================================
+   PAGE 3 — CARD DECK
+   ============================================================ */
+#page-sim {
+  padding:30px 0 60px; gap:0;
+  align-items:center; justify-content:flex-start;
+}
+
+.card-counter {
+  font-family:'Cinzel', serif; font-size:.58rem; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--gold); opacity:.5;
+  text-align:center; padding-top:10px; padding-bottom:16px;
+}
+
+.card-scene {
+  width:calc(100% - 48px); max-width:400px;
+  height:min(800px, 90vh);
+  perspective:1200px; cursor:pointer; position:relative; margin:0 auto;
+}
+
+.card-3d {
+  width:100%; height:100%; position:relative;
+  transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.4,0,.2,1);
+}
+.card-3d.flipped { transform:rotateY(180deg); }
+
+.card-face {
+  position:absolute; inset:0;
+  border-radius:var(--r-card);
+  backface-visibility:hidden; -webkit-backface-visibility:hidden; overflow:hidden;
+}
+
+.card-front {
+  background:var(--ink-2);
+  border:1px solid rgba(201,169,110,.22);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:space-between;
+  padding:28px 22px;
+  box-shadow:0 2px 0 rgba(201,169,110,.12),0 24px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.card-scene-art {
+  position:absolute; inset:0; z-index:0;
+  overflow:hidden; border-radius:var(--r-card);
+}
+.card-scene-art::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(10,11,14,.6) 0%,rgba(10,11,14,.1) 30%,rgba(10,11,14,.1) 60%,rgba(10,11,14,.8) 100%);
+}
+
+.card-front-top,
+.card-front-bottom { position:relative; z-index:1; text-align:center; }
+.card-front-top { padding-top:4px; }
+
+.card-snapshot-label {
+  font-family:'Cinzel', serif; font-size:.55rem; letter-spacing:.3em;
+  text-transform:uppercase; color:var(--gold); opacity:.7; display:block; margin-bottom:6px;
+}
+.card-snapshot-num {
+  font-family:'Cinzel', serif; font-size:.78rem; letter-spacing:.16em; color:rgba(255,255,255,.4);
+}
+
+.card-front-bottom { padding-bottom:8px; }
+.card-atmospheric-title {
+  font-family:'Crimson Pro', serif; font-size:1.3rem; font-weight:300;
+  font-style:italic; color:rgba(255,255,255,.88); line-height:1.3; margin-bottom:16px;
+}
+.card-tap-hint {
+  font-family:'Cinzel', serif; font-size:.54rem; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--gold); opacity:.5;
+  animation:tapPulse 2.4s ease-in-out infinite;
+}
+@keyframes tapPulse { 0%,100%{opacity:.3;} 50%{opacity:.65;} }
+
+.card-ornament {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:120px; height:120px; border-radius:50%;
+  border:1px solid rgba(201,169,110,.08);
+  box-shadow:0 0 40px rgba(201,169,110,.05);
+  z-index:0; pointer-events:none;
+}
+.card-ornament::before {
+  content:''; position:absolute; inset:12px; border-radius:50%;
+  border:1px solid rgba(201,169,110,.06);
+}
+
+/* Card back — taller, more room for text */
+.card-back {
+  background:var(--ink-2);
+  border:1px solid rgba(201,169,110,.22);
+  transform:rotateY(180deg);
+  display:flex; flex-direction:column; padding:0;
+  box-shadow:0 2px 0 rgba(201,169,110,.12),0 24px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+  overflow-y:auto;
+  border-radius:var(--r-card);
+}
+
+.card-back-accent { height:3px; width:100%; flex-shrink:0; }
+
+.card-back-inner {
+  padding:18px 18px 18px;
+  display:flex; flex-direction:column; gap:12px;
+  flex:1;
+}
+
+.card-back-badge {
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;
+}
+.card-back-badge-label {
+  font-family:'Cinzel', serif; font-size:.56rem; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--silver-2);
+}
+.card-back-num {
+  font-family:'Cinzel', serif; font-size:.56rem; letter-spacing:.14em;
+  color:var(--silver-2); background:var(--silver-4);
+  border:1px solid var(--silver-3); border-radius:var(--r-pill); padding:3px 9px;
+}
+
+.card-back-title {
+  font-family:'Cinzel', serif; font-size:.95rem; font-weight:400;
+  letter-spacing:.06em; color:rgba(255,255,255,.92); line-height:1.25;
+}
+
+.card-signal {
+  font-family:'Crimson Pro', serif; font-size:.82rem; font-style:italic;
+  color:var(--gold); opacity:.75; line-height:1.3;
+}
+
+.card-finding {
+  font-family:'Crimson Pro', serif; font-size:.9rem; font-weight:300;
+  color:var(--silver); line-height:1.8;
+}
+
+.tradeoff-set { display:flex; flex-wrap:wrap; gap:7px; }
+.t-pill {
+  display:flex; align-items:center; gap:7px;
+  padding:5px 11px 5px 8px; border-radius:var(--r-pill);
+  border:1px solid var(--silver-3); background:var(--silver-4);
+}
+.t-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.t-dot.low    { background:#b87070; box-shadow:0 0 5px #b87070; }
+.t-dot.medium { background:#c9a96e; box-shadow:0 0 5px #c9a96e; }
+.t-dot.high   { background:#5e9e95; box-shadow:0 0 5px #5e9e95; }
+.t-name { font-size:.72rem; color:var(--silver-2); }
+.t-lvl { font-size:.72rem; font-weight:500; }
+.t-lvl.low    { color:#b87070; }
+.t-lvl.medium { color:#c9a96e; }
+.t-lvl.high   { color:#5e9e95; }
+
+.reflection-block { padding-top:4px; }
+.refl-q { font-family:'Crimson Pro', serif; font-size:.9rem; font-style:italic; color:var(--silver-2); margin-bottom:10px; }
+.rating-row { display:flex; gap:7px; }
+.r-btn {
+  width:34px; height:34px; border-radius:50%;
+  border:1px solid var(--silver-3); background:transparent;
+  font-family:'Outfit', sans-serif; font-size:.8rem;
+  color:var(--silver-2); cursor:pointer; transition:all var(--tr-fast);
+  display:flex; align-items:center; justify-content:center;
+}
+.r-btn:hover { border-color:var(--gold); color:var(--gold); }
+.r-btn.sel { background:var(--gold); border-color:var(--gold); color:var(--ink); font-weight:600; }
+
+.card-next-row { display:flex; justify-content:center; padding:16px 0 4px; }
+.card-next-btn {
+  background:transparent; border:1px solid rgba(201,169,110,.35);
+  border-radius:var(--r-pill); padding:11px 28px;
+  font-family:'Cinzel', serif; font-size:.62rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--gold); cursor:pointer; transition:all var(--tr-med);
+}
+.card-next-btn:hover { background:var(--gold-dim); border-color:rgba(201,169,110,.6); }
+
+@keyframes cardDraw {
+  from { opacity:0; transform:translateY(30px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.card-scene { animation:cardDraw .55s cubic-bezier(.4,0,.2,1) both; }
+
+/* ============================================================
+   SCENE ILLUSTRATIONS
+   ============================================================ */
+.scene-dawn { background:linear-gradient(180deg, #131b2a 0%, #1e3050 35%, #d4875a 75%, #e8b07a 100%); }
+.sc-sun { position:absolute; bottom:42%; left:50%; transform:translateX(-50%); width:50px; height:25px; border-radius:50px 50px 0 0; background:radial-gradient(circle at 50% 100%, #fde68a, #f59e0b 50%, transparent 80%); box-shadow:0 0 35px 12px rgba(251,191,36,.3), 0 0 70px 25px rgba(251,191,36,.1); animation:sunrise 4s ease-out both; }
+@keyframes sunrise { from{bottom:35%;opacity:.2;} to{bottom:42%;opacity:1;} }
+.sc-horizon { position:absolute; width:100%; height:45px; bottom:40%; background:linear-gradient(180deg,transparent,rgba(232,140,80,.25),transparent); filter:blur(8px); }
+.sc-ground { position:absolute; bottom:0; width:100%; height:42%; background:linear-gradient(180deg,#150e08,#0a0703); }
+.sc-window { position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:130px; height:55%; border:2px solid rgba(255,255,255,.07); border-bottom:none; border-radius:65px 65px 0 0; }
+.sc-window::before { content:''; position:absolute; top:50%; left:0; right:0; height:1px; background:rgba(255,255,255,.07); }
+.sc-window::after  { content:''; position:absolute; top:0; bottom:0; left:50%; width:1px; background:rgba(255,255,255,.07); }
+.sc-bird { position:absolute; width:12px; height:5px; border-top:1.5px solid rgba(255,255,255,.4); border-radius:50% 50% 0 0; }
+.sc-bird::after { content:''; position:absolute; right:0; top:0; width:6px; height:5px; border-top:1.5px solid rgba(255,255,255,.4); border-radius:50% 50% 0 0; transform:rotateY(180deg); }
+.sc-b1{top:22%;left:18%;animation:bfly 14s linear infinite;}
+.sc-b2{top:28%;left:28%;animation:bfly 14s 1.8s linear infinite;}
+.sc-b3{top:18%;left:14%;animation:bfly 14s .9s linear infinite;}
+@keyframes bfly{from{transform:translateX(0);}to{transform:translateX(520px);}}
+.sc-star{position:absolute;width:2px;height:2px;border-radius:50%;background:white;}
+.sc-stars{position:absolute;inset:0;}
+
+.scene-cafe { background:linear-gradient(180deg,#0e0906 0%,#1a1007 40%,#241508 80%,#141005 100%); }
+.sc-pendant{position:absolute;}
+.sc-cord{width:1px;background:rgba(255,255,255,.13);margin:0 auto;}
+.sc-bulb{width:22px;height:26px;border-radius:50% 50% 40% 40%;background:radial-gradient(ellipse at 40% 35%,#fff9c4,#f59e0b 55%,#92400e);margin:0 auto;box-shadow:0 0 16px 7px rgba(245,158,11,.4),0 0 45px 18px rgba(245,158,11,.14);animation:flicker 7s ease-in-out infinite;}
+@keyframes flicker{0%,100%{box-shadow:0 0 16px 7px rgba(245,158,11,.4),0 0 45px 18px rgba(245,158,11,.14);}50%{box-shadow:0 0 20px 9px rgba(245,158,11,.5),0 0 55px 22px rgba(245,158,11,.18);}}
+.sc-p1{left:16%;top:0;} .sc-p2{left:50%;transform:translateX(-50%);top:0;} .sc-p3{right:16%;top:0;}
+.sc-table{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:170px;}
+.sc-tabletop{height:7px;background:#3a2808;border-radius:4px 4px 0 0;box-shadow:0 -2px 10px rgba(245,158,11,.1);}
+.sc-tableleg{width:5px;height:45px;background:#251800;margin:0 auto;}
+.sc-cup{position:absolute;bottom:52px;left:50%;transform:translateX(-24px);width:16px;height:12px;border:1.5px solid rgba(255,255,255,.22);border-radius:0 0 4px 4px;}
+.sc-cup::before{content:'';position:absolute;bottom:-4px;left:-4px;right:-4px;height:3px;background:rgba(255,255,255,.12);border-radius:99px;}
+.sc-cup::after{content:'';position:absolute;top:-10px;left:2px;width:1.5px;height:8px;background:rgba(255,255,255,.1);border-radius:99px;animation:steam 2.5s .5s ease-in-out infinite;}
+@keyframes steam{0%,100%{transform:translateY(0) scaleX(1);opacity:.45;}50%{transform:translateY(-5px) scaleX(1.4);opacity:.12;}}
+.sc-person{position:absolute;bottom:50px;}
+.sc-ph{border-radius:50%;background:rgba(255,255,255,.1);margin:0 auto;}
+.sc-pb{background:rgba(255,255,255,.07);border-radius:3px 3px 0 0;margin:2px auto 0;}
+.sc-per1{left:20%;} .sc-per1 .sc-ph{width:18px;height:18px;} .sc-per1 .sc-pb{width:25px;height:32px;}
+.sc-per2{right:20%;} .sc-per2 .sc-ph{width:16px;height:16px;} .sc-per2 .sc-pb{width:23px;height:28px;}
+.sc-floorglow{position:absolute;bottom:0;width:100%;height:55px;background:linear-gradient(180deg,transparent,rgba(245,158,11,.05));}
+
+.scene-coast { background:linear-gradient(180deg,#0c1a28 0%,#152336 25%,#1a3048 50%,#0e2030 75%,#081520 100%); }
+.sc-moon{position:absolute;top:16%;right:14%;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 33% 33%,#fffde7,#fde68a 60%,#d4a96a);box-shadow:0 0 22px 7px rgba(212,169,106,.22),0 0 55px 18px rgba(212,169,106,.07);animation:moonglow 5s ease-in-out infinite alternate;}
+@keyframes moonglow{from{box-shadow:0 0 22px 7px rgba(212,169,106,.22);}to{box-shadow:0 0 32px 12px rgba(212,169,106,.32),0 0 75px 28px rgba(212,169,106,.1);}}
+.sc-moonrefl{position:absolute;bottom:32%;right:calc(14% + 1px);width:4px;height:55px;background:linear-gradient(180deg,rgba(212,169,106,.45),transparent);border-radius:99px;filter:blur(3px);animation:refl 2.8s ease-in-out infinite alternate;}
+@keyframes refl{from{transform:scaleX(1);opacity:.55;}to{transform:scaleX(2.4);opacity:.25;}}
+.sc-sea{position:absolute;bottom:0;width:100%;height:33%;background:linear-gradient(180deg,#0c2230,#071318);overflow:hidden;}
+.sc-wave{position:absolute;width:200%;height:18px;border-radius:50%;opacity:.32;}
+.sc-w1{top:8px;left:-50%;background:linear-gradient(90deg,transparent,rgba(94,158,149,.4),transparent);animation:wavemove 7s linear infinite;}
+.sc-w2{top:18px;left:-50%;background:linear-gradient(90deg,transparent,rgba(94,158,149,.25),transparent);animation:wavemove 9s 2s linear infinite reverse;}
+.sc-w3{top:28px;left:-50%;background:linear-gradient(90deg,transparent,rgba(94,158,149,.15),transparent);animation:wavemove 11s 1s linear infinite;}
+@keyframes wavemove{from{transform:translateX(0);}to{transform:translateX(50%);}}
+.sc-cliff{position:absolute;bottom:32%;left:0;width:110px;height:75px;background:#090e13;clip-path:polygon(0 100%,0 35%,28% 12%,58% 27%,82% 8%,100% 22%,100% 100%);}
+.sc-figure{position:absolute;bottom:calc(32% + 63px);left:66px;}
+.sc-fh{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.16);}
+.sc-fb{width:12px;height:11px;background:rgba(255,255,255,.09);border-radius:2px;margin-top:1px;transform:rotate(-4deg);}
+.sc-shoot{position:absolute;top:22%;left:-35px;width:35px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.75));border-radius:99px;animation:shoot 8s 3s ease-out infinite;transform:rotate(-18deg);}
+@keyframes shoot{0%{left:-35px;top:22%;opacity:0;}5%{opacity:1;}20%{left:65%;top:40%;opacity:0;}100%{left:65%;top:40%;opacity:0;}}
+.sc-cstars{position:absolute;inset:0;}
+
+/* ============================================================
+   PAGE 4 — AGENT RECOMMENDATIONS
+   ============================================================ */
+#page-commitment { padding-top:50px; }
+
+.commitment-grid { width:100%; display:flex; flex-direction:column; gap:12px; }
+
+.commit-card {
+  cursor:pointer; padding:20px;
+  background:var(--silver-4); border:1.5px solid var(--silver-3);
+  border-radius:var(--r-card); transition:all var(--tr-med);
+  display:flex; align-items:flex-start; gap:14px;
+}
+.commit-card:hover { background:rgba(201,169,110,.06); border-color:rgba(201,169,110,.3); }
+.commit-card.chosen { background:rgba(201,169,110,.09); border-color:rgba(201,169,110,.5); }
+.commit-check {
+  width:22px; height:22px; border-radius:50%; border:1.5px solid var(--silver-3);
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  font-size:.7rem; color:transparent; transition:all var(--tr-med); margin-top:1px;
+}
+.commit-card.chosen .commit-check { background:var(--gold); border-color:var(--gold); color:var(--ink); }
+.commit-body { flex:1; }
+.commit-title { font-family:'Cinzel', serif; font-size:.78rem; letter-spacing:.08em; color:rgba(255,255,255,.9); margin-bottom:5px; }
+.commit-desc { font-family:'Crimson Pro', serif; font-size:.88rem; font-weight:300; color:var(--silver); line-height:1.55; margin-bottom:7px; }
+.commit-time { font-size:.68rem; color:var(--gold); background:rgba(201,169,110,.1); border:1px solid rgba(201,169,110,.2); border-radius:var(--r-pill); padding:3px 9px; display:inline-block; font-family:'Cinzel', serif; letter-spacing:.08em; }
+
+/* ============================================================
+   PAGE 5 — CONFIRMATION
+   ============================================================ */
+#page-confirm { padding-top:80px; justify-content:center; }
+
+.confirm-glyph {
+  font-size:2.2rem; text-align:center;
+  animation:glyphPulse 3s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 12px rgba(201,169,110,.4));
+}
+@keyframes glyphPulse { from{opacity:.5; transform:scale(1);} to{opacity:.9; transform:scale(1.05);} }
+
+.confirm-card {
+  width:100%;
+  background:linear-gradient(145deg, rgba(201,169,110,.08), rgba(201,169,110,.02));
+  border:1px solid rgba(201,169,110,.3);
+  border-radius:var(--r-card); padding:28px 24px;
+  text-align:center; display:flex; flex-direction:column; gap:14px;
+}
+.chosen-commitment-name {
+  font-family:'Cinzel', serif; font-size:.82rem; letter-spacing:.08em;
+  color:var(--gold); padding:10px 16px;
+  background:rgba(201,169,110,.08); border:1px solid rgba(201,169,110,.2); border-radius:var(--r-sm);
+}
+.continuation-text {
+  font-family:'Crimson Pro', serif; font-size:.95rem; font-style:italic;
+  color:var(--silver-2); line-height:1.75;
+}
+
+.loop-diagram { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
+.loop-node { font-family:'Cinzel', serif; font-size:.56rem; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); opacity:.6; }
+.loop-arrow { color:var(--gold); opacity:.3; font-size:.75rem; }
+
+/* ============================================================
+   EVIDENCE FEED (loading page)
+   ============================================================ */
+.evidence-feed {
+  width:100%;
+  background:rgba(94,158,149,.04);
+  border:1px solid rgba(94,158,149,.18);
+  border-radius:var(--r-card);
+  padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  max-height:200px;
+  overflow:hidden;
+  position:relative;
+}
+.evidence-feed::after {
+  content:'';
+  position:absolute;
+  bottom:0; left:0; right:0; height:40px;
+  background:linear-gradient(transparent, rgba(12,13,16,.95));
+  pointer-events:none;
+  border-radius:0 0 var(--r-card) var(--r-card);
+}
+.evidence-feed-label {
+  font-family:'Cinzel', serif;
+  font-size:.52rem;
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  color:var(--teal);
+  opacity:.6;
+  margin-bottom:2px;
+}
+.evidence-line {
+  font-family:'DM Mono', 'Courier New', monospace;
+  font-size:.72rem;
+  color:var(--teal);
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity .4s ease, transform .4s ease;
+  line-height:1.5;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.evidence-line.visible {
+  opacity:.85;
+  transform:translateY(0);
+}
+
+/* ============================================================
+   SWIPE HINT TOOLTIP
+   ============================================================ */
+.swipe-hint {
+  position:absolute;
+  bottom:16px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10;
+  background:rgba(12,13,16,.88);
+  border:1px solid rgba(201,169,110,.35);
+  border-radius:var(--r-pill);
+  padding:8px 18px;
+  font-family:'Cinzel', serif;
+  font-size:.58rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--gold);
+  white-space:nowrap;
+  pointer-events:none;
+  animation:swipeHintPulse 2.2s ease-in-out infinite;
+}
+@keyframes swipeHintPulse {
+  0%,100% { opacity:.7; box-shadow:0 0 0 0 rgba(201,169,110,.0); }
+  50% { opacity:1; box-shadow:0 0 0 6px rgba(201,169,110,.08); }
+}
+
+/* ============================================================
+   EXAMPLE PROMPT CHIPS
+   ============================================================ */
+.prompt-chips {
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:8px;
+}
+.prompt-chip {
+  cursor:pointer;
+  padding:5px 13px;
+  border-radius:var(--r-pill);
+  border:1px solid rgba(201,169,110,.3);
+  background:rgba(201,169,110,.07);
+  font-family:'Outfit', sans-serif;
+  font-size:.75rem;
+  color:var(--gold);
+  transition:all var(--tr-fast);
+  user-select:none;
+}
+.prompt-chip:hover {
+  background:rgba(201,169,110,.14);
+  border-color:rgba(201,169,110,.55);
+}
+
+@media (max-width: 420px) {
+  .card-scene { width:calc(100% - 32px); }
+  .signal-form { padding:20px 16px; }
+  .slider-row { grid-template-columns:58px 1fr 58px; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 0 — ONBOARDING
+       ═══════════════════════════════════════════════ -->
+  <div class="page active" id="page-onboard">
+
+    <div style="height:20px"></div>
+
+    <!-- Constellation decoration (purely decorative) -->
+    <svg aria-hidden="true" focusable="false" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.35;" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8%" cy="12%" r="1.2" fill="rgba(201,169,110,.6)"/>
+      <circle cx="15%" cy="28%" r=".7" fill="rgba(255,255,255,.4)"/>
+      <circle cx="23%" cy="8%" r="1" fill="rgba(255,255,255,.5)"/>
+      <circle cx="78%" cy="10%" r="1.3" fill="rgba(201,169,110,.5)"/>
+      <circle cx="88%" cy="22%" r=".8" fill="rgba(255,255,255,.4)"/>
+      <circle cx="92%" cy="6%" r="1" fill="rgba(255,255,255,.55)"/>
+      <circle cx="6%" cy="55%" r=".9" fill="rgba(255,255,255,.3)"/>
+      <circle cx="94%" cy="48%" r="1.1" fill="rgba(201,169,110,.4)"/>
+      <circle cx="50%" cy="4%" r=".8" fill="rgba(255,255,255,.35)"/>
+      <circle cx="38%" cy="92%" r=".7" fill="rgba(255,255,255,.25)"/>
+      <circle cx="65%" cy="88%" r="1" fill="rgba(201,169,110,.3)"/>
+      <line x1="8%" y1="12%" x2="15%" y2="28%" stroke="rgba(201,169,110,.12)" stroke-width=".5"/>
+      <line x1="15%" y1="28%" x2="23%" y2="8%" stroke="rgba(201,169,110,.10)" stroke-width=".5"/>
+      <line x1="78%" y1="10%" x2="88%" y2="22%" stroke="rgba(201,169,110,.12)" stroke-width=".5"/>
+      <line x1="88%" y1="22%" x2="92%" y2="6%" stroke="rgba(201,169,110,.10)" stroke-width=".5"/>
+    </svg>
+
+    <div class="onboard-glyph">✦</div>
+
+    <div style="text-align:center;">
+      <span style="font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);opacity:.6;display:block;margin-bottom:14px;">What is ALTER</span>
+      <h1 class="ritual-title">A<em>lt</em>er</h1>
+      <p style="font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--silver-2);margin-top:12px;">AI agent · futures scouting · evidence-based manifestation</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="body-text" style="font-size:.95rem;max-width:360px;">
+      You've scripted it. You've visualised it.<br/>
+      Now send an agent to actually live it — and report back.
+    </p>
+
+    <div class="onboard-steps">
+      <div class="onboard-step">
+        <div class="onboard-step-num">01</div>
+        <div class="onboard-step-body">
+          <div class="onboard-step-title">Describe your manifestation</div>
+          <div class="onboard-step-desc">Tell ALTER what you're calling in — a city, a career, a way of living. The more specific, the richer the field report.</div>
+        </div>
+      </div>
+      <div class="onboard-step">
+        <div class="onboard-step-num">02</div>
+        <div class="onboard-step-body">
+          <div class="onboard-step-title">Your agent is dispatched</div>
+          <div class="onboard-step-desc">ALTER sends an AI agent to live that future for three days — placing you inside it before you commit to it. It experiences the routines, the people, the costs, the friction.</div>
+        </div>
+      </div>
+      <div class="onboard-step">
+        <div class="onboard-step-num">03</div>
+        <div class="onboard-step-body">
+          <div class="onboard-step-title">The agent reports back</div>
+          <div class="onboard-step-desc">You receive three field reports and one concrete action to test whether this future is actually right for you.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="onboard-caveat">
+      This is not prediction. It is exploration.<br/>
+      Your ritual, backed by real findings.<br/>
+      Not a belief system. A report of the future.<br/>
+    </p>
+
+    <button class="btn-ritual" onclick="goTo('page-input')"><span>Begin Your Reading →</span></button>
+
+    <!-- Past Dispatches -->
+    <div id="past-dispatches-section" style="display:none;width:100%;max-width:420px;margin-top:32px;">
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <p style="font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);opacity:.6;margin:0;">Past Dispatches</p>
+        <button onclick="clearAllDispatches()" style="background:none;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:0;">Clear all</button>
+      </div>
+      <div id="past-dispatches-list"></div>
+    </div>
+
+  </div><!-- /page-onboard -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 1 — INPUT
+       ═══════════════════════════════════════════════ -->
+  <div class="page" id="page-input">
+
+    <div style="height:20px"></div>
+
+    <div class="input-header">
+      <span class="eyebrow">Briefing Your Agent</span>
+      <h1 class="ritual-title">A<em>lt</em>er</h1>
+    </div>   
+
+    <div class="divider"></div>
+
+    <p class="body-text" style="font-size:.95rem;max-width:340px;">
+      Before you script it, your agent will live it.<br/>
+      Answer honestly — the more specific, the richer the report.
+    </p>
+
+    <div class="signal-form">
+
+      <div class="field">
+        <span class="field-label">The future you want to manifest</span>
+        <input type="text" id="inp-change" placeholder="e.g. Quitting my job, moving to Lisbon, working for myself…"/>
+        <div class="prompt-chips">
+          <button type="button" class="prompt-chip" onclick="document.getElementById('inp-change').value='Become a nutritional scientist'">Become a nutritional scientist</button>
+          <button type="button" class="prompt-chip" onclick="document.getElementById('inp-change').value='Start my own studio'">Start my own studio</button>
+          <button type="button" class="prompt-chip" onclick="document.getElementById('inp-change').value='Move abroad and freelance'">Move abroad and freelance</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">What you want more of</span>
+        <input type="text" id="inp-more" placeholder="e.g. Freedom, aliveness, creative work…"/>
+      </div>
+
+      <div class="field">
+        <span class="field-label">What you are ready to leave behind</span>
+        <input type="text" id="inp-less" placeholder="e.g. Routine, pressure, certainty…"/>
+      </div>
+
+      <div class="field">
+        <span class="field-label">What you are afraid to lose</span>
+        <input type="text" id="inp-afraid" placeholder="e.g. Close friends, momentum, stability…"/>
+      </div>
+
+      <hr class="form-divider"/>
+
+      <div>
+        <span class="field-label" style="display:block;margin-bottom:12px;">Your values spectrum</span>
+        <div class="slider-stack">
+          <div class="slider-row">
+            <span class="sl-l">Stability</span>
+            <input type="range" id="sl-stab" min="1" max="5" value="3"/>
+            <span class="sl-r">Freedom</span>
+          </div>
+          <div class="slider-row">
+            <span class="sl-l">Mastery</span>
+            <input type="range" id="sl-mast" min="1" max="5" value="3"/>
+            <span class="sl-r">Exploration</span>
+          </div>
+          <div class="slider-row">
+            <span class="sl-l">Social</span>
+            <input type="range" id="sl-soc" min="1" max="5" value="3"/>
+            <span class="sl-r">Solitary</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="form-divider"/>
+
+      <div>
+        <span class="field-label" style="display:block;margin-bottom:10px;">Choose two values</span>
+        <div class="chip-row" id="val-chips">
+          <div class="vchip" data-v="Creativity">Creativity</div>
+          <div class="vchip" data-v="Security">Security</div>
+          <div class="vchip" data-v="Belonging">Belonging</div>
+          <div class="vchip" data-v="Calm">Calm</div>
+          <div class="vchip" data-v="Recognition">Recognition</div>
+          <div class="vchip" data-v="Independence">Independence</div>
+        </div>
+        <p class="chip-hint" id="chip-hint" style="margin-top:8px;">Select 2</p>
+      </div>
+
+    </div>
+
+    <p class="form-error" id="form-error">Please complete all fields and select 2 values.</p>
+
+    <button class="btn-ritual" id="btn-begin"><span>Dispatch Your Agent →</span></button>
+
+  </div><!-- /page-input -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 2 — INTERPRETATION
+       ═══════════════════════════════════════════════ -->
+  <div class="page" id="page-interp">
+
+    <div style="height:10px"></div>
+    <div class="mark">Agent Briefing</div>
+    <div class="divider"></div>
+    <div class="interp-glyph">✦</div>
+
+    <h2 class="section-title">Your agent is ready</h2>
+
+    <div class="reading-card" id="reading-card">
+
+      <div class="reading-block">
+        <span class="reading-block-label">What the agent is carrying</span>
+        <p class="reading-text" id="reading-text">—</p>
+      </div>
+
+      <hr class="form-divider"/>
+
+      <div class="reading-block">
+        <span class="reading-block-label">The agent will pay attention to</span>
+        <div class="emph-set" id="emph-set"></div>
+      </div>
+
+      <hr class="form-divider"/>
+
+      <div class="reading-block">
+        <span class="reading-block-label">Your values spectrum</span>
+        <div class="tension-set" id="tension-set"></div>
+      </div>
+
+    </div>
+
+    <p class="begin-hint">Your future is waiting</p>
+
+    <button class="btn-ritual" id="btn-draw"><span>Send the Agent →</span></button>
+
+    <button class="btn-ghost" onclick="goTo('page-input')">← Revise briefing</button>
+
+  </div><!-- /page-interp -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE — LOADING / DISPATCH
+       ═══════════════════════════════════════════════ -->
+  <div class="page" id="page-loading">
+
+    <div class="dispatch-container">
+
+      <div class="dispatch-orb">
+        <div class="dispatch-icon">✦</div>
+      </div>
+
+      <div style="text-align:center;">
+        <div class="mark" style="opacity:.9;margin-bottom:10px;">Agent Dispatched</div>
+        <p class="dispatch-status" id="dispatch-status">Living your future…</p>
+      </div>
+
+      <div class="dispatch-log" id="dispatch-log">
+        <div class="log-line" id="log-0">
+          <div class="log-dot" id="dot-0"></div>
+          <div class="log-text" id="txt-0">Arriving in your future</div>
+        </div>
+        <div class="log-line" id="log-1">
+          <div class="log-dot" id="dot-1"></div>
+          <div class="log-text" id="txt-1">Mapping daily rhythms</div>
+        </div>
+        <div class="log-line" id="log-2">
+          <div class="log-dot" id="dot-2"></div>
+          <div class="log-text" id="txt-2">Reading the social landscape</div>
+        </div>
+        <div class="log-line" id="log-3">
+          <div class="log-dot" id="dot-3"></div>
+          <div class="log-text" id="txt-3">Surfacing the real costs</div>
+        </div>
+        <div class="log-line" id="log-4">
+          <div class="log-dot" id="dot-4"></div>
+          <div class="log-text" id="txt-4">Preparing the report</div>
+        </div>
+      </div>
+
+      <div class="evidence-feed" id="evidence-feed">
+        <span class="evidence-feed-label">Live evidence collection</span>
+        <!-- Evidence lines injected by JS -->
+      </div>
+
+    </div>
+
+  </div><!-- /page-loading -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 3 — CARD DECK
+       ═══════════════════════════════════════════════ -->
+  <div class="page" id="page-sim">
+
+    <div class="mark" id="card-label">Field Report</div>
+    <div class="card-counter" id="card-counter">Report I of III</div>
+
+    <div class="card-scene" id="card-scene" onclick="handleCardTap()">
+      <div class="card-3d" id="card-3d">
+        <div class="card-face card-front" id="card-front"></div>
+        <div class="card-face card-back" id="card-back"></div>
+      </div>
+    </div>
+
+    <div class="card-next-row" id="card-next-row" style="display:none;">
+      <button class="card-next-btn" id="card-next-btn">Next Report →</button>
+    </div>
+
+    <button class="btn-ghost" onclick="goTo('page-interp')">← Back to briefing</button>
+
+  </div><!-- /page-sim -->
+
+<!-- VERDICT PAGE -->
+<div class="page" id="page-verdict">
+  <div style="height:20px"></div>
+  <div class="mark">Agent Verdict</div>
+  <div class="divider"></div>
+  <div class="interp-glyph">✦</div>
+  <div class="reading-card">
+    <div class="reading-block">
+      <span class="reading-block-label">After three days in your future, the agent says</span>
+      <p class="reading-text" id="verdict-text">—</p>
+    </div>
+  </div>
+  <button class="btn-ritual" onclick="renderCommitments(); goTo('page-commitment')">
+    <span>See Recommendations →</span>
+  </button>
+</div>
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 4 — AGENT RECOMMENDATIONS
+       ═══════════════════════════════════════════════ -->
+  <div class="page" id="page-commitment">
+
+    <div style="height:10px"></div>
+    <div class="mark">Agent Recommendations</div>
+    <div class="divider"></div>
+
+    <div style="text-align:center;">
+      <h2 class="section-title" style="margin-bottom:12px;">What the agent suggests</h2>
+      <p class="body-text" style="font-size:.9rem;max-width:360px;">
+        Based on what it found in your future,<br/>
+        your agent has identified three ways to test this path — each one designed to make the shift stick.<br/>
+        <em style="font-family:'Crimson Pro',serif;color:var(--gold);opacity:.8;">Choose the one that feels most urgent.</em>
+      </p>
+    </div>
+
+    <div class="commitment-grid" id="commitment-grid"></div>
+
+    <p class="form-error" id="commit-error">Please select one action to continue.</p>
+
+    <button class="btn-ritual" id="btn-commit"><span>Commit to This →</span></button>
+
+  </div><!-- /page-commitment -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 5 — CONFIRMATION
+       ═══════════════════════════════════════════════ -->
+  <div class="page" id="page-confirm">
+
+    <div class="mark">Reading Complete</div>
+    <div class="divider"></div>
+    <div class="confirm-glyph">✦</div>
+    <h2 class="section-title">Commitment Sealed</h2>
+
+    <div class="confirm-card">
+      <p class="reading-text" style="text-align:center;">You chose to test:</p>
+      <p class="chosen-commitment-name" id="confirm-commit-name">—</p>
+      <p class="continuation-text">
+        This action becomes part of your trajectory.<br/>
+        Tomorrow's reading will respond to what you did today.
+      </p>
+    </div>
+
+    <div class="loop-diagram">
+      <span class="loop-node">Manifest</span>
+      <span class="loop-arrow">→</span>
+      <span class="loop-node">Dispatch</span>
+      <span class="loop-arrow">→</span>
+      <span class="loop-node">Report</span>
+      <span class="loop-arrow">→</span>
+      <span class="loop-node">Act</span>
+    </div>
+
+    <p class="body-text" style="font-size:.85rem;max-width:340px;font-style:italic;">
+      You do not decide your future in one moment.<br/>
+      You test it, one action at a time.
+    </p>
+
+    <button class="btn-ritual" onclick="restartReading()"><span>End Today's Reading</span></button>
+
+    <button class="btn-ritual" onclick="restartReading()" style="background:var(--gold-dim);border-color:rgba(201,169,110,.5);margin-top:-8px;"><span>Dispatch another agent →</span></button>
+
+  </div><!-- /page-confirm -->
+
+</div><!-- /app -->
+
+
+<!-- SCENE TEMPLATES -->
+<template id="tpl-scene-dawn">
+  <div class="card-scene-art scene-dawn">
+    <div class="sc-stars">
+      <div class="sc-star" style="top:8%;left:12%;opacity:.7;animation:starFade 4s .2s ease-out both;"></div>
+      <div class="sc-star" style="top:5%;left:30%;opacity:.5;animation:starFade 4s .5s ease-out both;"></div>
+      <div class="sc-star" style="top:12%;left:55%;opacity:.6;animation:starFade 4s .1s ease-out both;"></div>
+      <div class="sc-star" style="top:7%;left:70%;opacity:.4;animation:starFade 4s .8s ease-out both;"></div>
+      <div class="sc-star" style="top:15%;left:85%;opacity:.5;animation:starFade 4s .3s ease-out both;"></div>
+    </div>
+    <div class="sc-horizon"></div>
+    <div class="sc-sun"></div>
+    <div class="sc-window"></div>
+    <div class="sc-ground"></div>
+    <div class="sc-bird sc-b1"></div>
+    <div class="sc-bird sc-b2"></div>
+    <div class="sc-bird sc-b3"></div>
+  </div>
+</template>
+<style>@keyframes starFade{0%{opacity:.8;}100%{opacity:0;}}</style>
+
+<template id="tpl-scene-cafe">
+  <div class="card-scene-art scene-cafe">
+    <div class="sc-pendant sc-p1"><div class="sc-cord" style="height:35px"></div><div class="sc-bulb"></div></div>
+    <div class="sc-pendant sc-p2"><div class="sc-cord" style="height:55px"></div><div class="sc-bulb"></div></div>
+    <div class="sc-pendant sc-p3"><div class="sc-cord" style="height:30px"></div><div class="sc-bulb"></div></div>
+    <div class="sc-floorglow"></div>
+    <div class="sc-table"><div class="sc-tabletop"></div><div class="sc-tableleg"></div></div>
+    <div class="sc-cup"></div>
+    <div class="sc-person sc-per1"><div class="sc-ph"></div><div class="sc-pb"></div></div>
+    <div class="sc-person sc-per2"><div class="sc-ph"></div><div class="sc-pb"></div></div>
+  </div>
+</template>
+
+<template id="tpl-scene-coast">
+  <div class="card-scene-art scene-coast">
+    <div class="sc-cstars">
+      <div class="sc-star" style="top:9%;left:7%;width:2px;height:2px;opacity:.65;"></div>
+      <div class="sc-star" style="top:5%;left:22%;opacity:.45;"></div>
+      <div class="sc-star" style="top:14%;left:38%;opacity:.55;"></div>
+      <div class="sc-star" style="top:6%;left:52%;opacity:.38;"></div>
+      <div class="sc-star" style="top:11%;left:64%;opacity:.6;"></div>
+      <div class="sc-star" style="top:4%;left:78%;opacity:.45;"></div>
+    </div>
+    <div class="sc-shoot"></div>
+    <div class="sc-moon"></div>
+    <div class="sc-moonrefl"></div>
+    <div class="sc-sea">
+      <div class="sc-wave sc-w1"></div>
+      <div class="sc-wave sc-w2"></div>
+      <div class="sc-wave sc-w3"></div>
+    </div>
+    <div class="sc-cliff"></div>
+    <div class="sc-figure"><div class="sc-fh"></div><div class="sc-fb"></div></div>
+  </div>
+</template>
+
+
+<script>
+// ── STATE ────────────────────────────────────────────────────
+let vals         = [];
+let cardIdx      = 0;
+let cardFlipped  = false;
+let ratings      = [null, null, null];
+let chosenCommit = null;
+let cards        = [];
+let commits      = [];
+
+let trajectoryState = {
+  sourceCommit: null,
+  effectLabel: '',
+  effectText: '',
+  sliderDelta: { stab: 0, mast: 0, soc: 0 },
+  emphasisAdd: [],
+};
+
+// ── NAVIGATION ───────────────────────────────────────────────
+function goTo(id) {
+  const all = document.querySelectorAll('.page');
+  const target = document.getElementById(id);
+  all.forEach(p => {
+    if (p.classList.contains('active')) {
+      p.style.opacity = '0';
+      p.style.transform = 'translateY(-14px)';
+      setTimeout(() => {
+        p.classList.remove('active');
+        p.style.opacity = '';
+        p.style.transform = '';
+      }, 400);
+    }
+  });
+  setTimeout(() => {
+    target.classList.add('active');
+    target.classList.add('entering');
+    requestAnimationFrame(() => requestAnimationFrame(() => target.classList.remove('entering')));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 380);
+}
+
+// ── SLIDER MOBILE FIX ────────────────────────────────────────
+document.querySelectorAll('input[type="range"]').forEach(slider => {
+  slider.addEventListener('touchstart', function(e) {
+    // Dispatch synthetic input event so value updates register on touch
+    this.dispatchEvent(new Event('input', { bubbles: true }));
+  }, { passive: true });
+  slider.addEventListener('touchend', function(e) {
+    this.dispatchEvent(new Event('input', { bubbles: true }));
+  }, { passive: true });
+  slider.addEventListener('touchmove', function(e) {
+    // Let the browser handle the range drag natively; fire input so UI updates
+    this.dispatchEvent(new Event('input', { bubbles: true }));
+  }, { passive: true });
+});
+
+// ── VALUE CHIPS ──────────────────────────────────────────────
+document.querySelectorAll('.vchip').forEach(el => {
+  el.addEventListener('click', () => {
+    const v = el.dataset.v;
+    if (el.classList.contains('on')) {
+      el.classList.remove('on');
+      vals = vals.filter(x => x !== v);
+    } else {
+      if (vals.length >= 2) return;
+      el.classList.add('on');
+      vals.push(v);
+    }
+    const r = 2 - vals.length;
+    document.getElementById('chip-hint').textContent = r === 0 ? '✓ Perfect' : `Select ${r} more`;
+  });
+});
+
+// ── HELPERS ──────────────────────────────────────────────────
+const fv = id => document.getElementById(id).value.trim();
+const INV_ROMAN = ['I', 'II', 'III'];
+function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+function titleCase(str) { if (!str) return ''; return str.charAt(0).toUpperCase() + str.slice(1); }
+
+const SCENE_TPLS = ['tpl-scene-dawn', 'tpl-scene-cafe', 'tpl-scene-coast'];
+const ACCENTS = [
+  'linear-gradient(90deg,#c9a96e,#e8b87a)',
+  'linear-gradient(90deg,#c9a96e,#b87060)',
+  'linear-gradient(90deg,#5e9e95,#3e7e78)',
+];
+const FRONT_TITLES = [
+  'A day in your future life',
+  'The people around you',
+  'What it actually costs',
+];
+
+// ── DISPATCH LOADING ANIMATION ───────────────────────────────
+function startDispatchAnimation(inputs) {
+  const m = (inputs && inputs.manifestation) ? inputs.manifestation : 'your future';
+  const more = (inputs && inputs.more_of) ? inputs.more_of : '';
+  const fear = (inputs && inputs.fear) ? inputs.fear : '';
+
+  // Build context-aware log texts shown in the dispatch panel
+  const logTexts = [
+    `Arriving: ${m.length > 40 ? m.slice(0,40)+'…' : m}`,
+    more ? `Tracking opportunities for more ${more.slice(0,32)}` : 'Mapping daily rhythms & routines',
+    `Reading the social landscape`,
+    fear ? `Surfacing risks around ${fear.slice(0,30)}` : 'Surfacing hidden costs & tradeoffs',
+    `Compiling your field report`,
+  ];
+
+  // Update the HTML log line labels before animating
+  logTexts.forEach((text, i) => {
+    const el = document.getElementById(`txt-${i}`);
+    if (el) el.textContent = text;
+  });
+
+  const messages = [
+    `Stepping into: ${m.length > 35 ? m.slice(0,35)+'…' : m}`,
+    more ? `Logging what more ${more.slice(0,28)} looks like…` : 'Mapping the rhythms…',
+    `Reading the social world…`,
+    fear ? `Testing the edges around ${fear.slice(0,25)}…` : 'Finding the friction…',
+    `Writing the report…`,
+  ];
+
+  let step = 0;
+  const statusEl = document.getElementById('dispatch-status');
+
+  // Reveal log lines progressively
+  function advanceLog() {
+    if (step >= 5) return;
+
+    // Mark previous as done
+    if (step > 0) {
+      document.getElementById(`dot-${step-1}`).className = 'log-dot done';
+      document.getElementById(`txt-${step-1}`).className = 'log-text done';
+    }
+
+    // Show current line
+    const line = document.getElementById(`log-${step}`);
+    const dot  = document.getElementById(`dot-${step}`);
+    const txt  = document.getElementById(`txt-${step}`);
+    if (line) {
+      line.classList.add('visible');
+      dot.className = 'log-dot active';
+      txt.className = 'log-text active';
+    }
+
+    if (statusEl && messages[step]) statusEl.textContent = messages[step];
+
+    step++;
+    if (step < 5) setTimeout(advanceLog, 900);
+  }
+
+  // Reset all log lines first
+  for (let i = 0; i < 5; i++) {
+    const l = document.getElementById(`log-${i}`);
+    const d = document.getElementById(`dot-${i}`);
+    const t = document.getElementById(`txt-${i}`);
+    if (l) { l.classList.remove('visible'); }
+    if (d) d.className = 'log-dot';
+    if (t) t.className = 'log-text';
+  }
+
+  setTimeout(advanceLog, 300);
+}
+
+// ── EVIDENCE FEED ANIMATION ──────────────────────────────────
+const PLACEHOLDER_EVIDENCE = [
+  'Scanning field data…',
+  'Cross-referencing patterns…',
+  'Logging observations…',
+  'Measuring friction points…',
+  'Tracking social indicators…',
+  'Analysing daily rhythms…',
+  'Compiling cost signals…',
+  'Reviewing belonging data…',
+];
+
+function buildPlaceholderLines(inputs) {
+  if (!inputs || !inputs.manifestation) return PLACEHOLDER_EVIDENCE;
+  const m = inputs.manifestation;
+  const more = inputs.more_of || '';
+  const fear = inputs.fear || '';
+  const vals = inputs.values || '';
+  return [
+    `Entering the world of: ${m.length > 38 ? m.slice(0,38)+'…' : m}`,
+    more  ? `Tracking signals for more ${more.slice(0,32)}…`         : 'Logging daily pattern data…',
+    `Mapping social networks & belonging…`,
+    fear  ? `Stress-testing risk around ${fear.slice(0,30)}…`        : 'Measuring friction & tradeoffs…',
+    vals  ? `Cross-referencing values: ${vals.slice(0,35)}…`         : 'Analysing values alignment…',
+    `Compiling cost-of-living indicators…`,
+    `Reviewing community density data…`,
+    more  ? `Logging ${more.slice(0,30)} frequency metrics…`         : 'Reviewing belonging & identity data…',
+  ];
+}
+
+function startEvidenceFeed(linesPromise, inputs) {
+  const feed = document.getElementById('evidence-feed');
+  if (!feed) return;
+
+  // Clear previous lines (keep label)
+  const label = feed.querySelector('.evidence-feed-label');
+  feed.innerHTML = '';
+  if (label) feed.appendChild(label);
+
+  let lineIndex = 0;
+  let resolvedLines = null;
+  let displayedCount = 0;
+
+  const placeholders = buildPlaceholderLines(inputs);
+
+  // Show placeholder lines while waiting
+  function showNextLine() {
+    const text = resolvedLines
+      ? (resolvedLines[displayedCount] || null)
+      : placeholders[lineIndex % placeholders.length];
+
+    if (!text) return;
+
+    const div = document.createElement('div');
+    div.className = 'evidence-line';
+    const ts = new Date();
+    const hh = String(ts.getHours()).padStart(2,'0');
+    const mm = String(ts.getMinutes()).padStart(2,'0');
+    const ss = String(ts.getSeconds()).padStart(2,'0');
+    div.textContent = `[${hh}:${mm}:${ss}] ${text}`;
+    feed.appendChild(div);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add('visible')));
+
+    lineIndex++;
+    displayedCount++;
+  }
+
+  // Drip lines every 900ms
+  const interval = setInterval(() => {
+    showNextLine();
+  }, 900);
+
+  // Show first line immediately
+  showNextLine();
+
+  // When real lines arrive, slot them in
+  if (linesPromise) {
+    linesPromise.then(lines => {
+      resolvedLines = lines || PLACEHOLDER_EVIDENCE;
+    }).catch(() => {
+      resolvedLines = PLACEHOLDER_EVIDENCE;
+    });
+  }
+
+  // Store interval id so we can stop it
+  window._evidenceFeedInterval = interval;
+}
+
+function stopEvidenceFeed() {
+  if (window._evidenceFeedInterval) {
+    clearInterval(window._evidenceFeedInterval);
+    window._evidenceFeedInterval = null;
+  }
+}
+
+// ── EVIDENCE API CALL ─────────────────────────────────────────
+async function fetchEvidenceLines(inputs) {
+  const prompt = `You are an AI agent returning from the future.
+Generate 8 short log lines (each under 12 words) describing evidence you collected while living this future: "${inputs.manifestation}".
+Context about this person: they want more of "${inputs.more_of}", they fear losing "${inputs.fear}", their values are ${inputs.values}.
+Make every line hyper-specific to THIS exact future — name real places, roles, costs, people types, and routines directly tied to "${inputs.manifestation}".
+Each line sounds like a field observation logged in real time, e.g. "Rent logged: €950/mo for T1 near Mouraria, Lisbon" or "Weekly co-working check-ins with 3 expat freelancers noted".
+Return ONLY a JSON array of 8 strings, no extra text.`;
+
+  try {
+    const response = await fetch("/api/agent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 300,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const raw = data.content[0].text;
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    return PLACEHOLDER_EVIDENCE;
+  }
+}
+
+// ── TRAJECTORY LOGIC ─────────────────────────────────────────
+function getTomorrowShiftFromCommit(commit) {
+  if (!commit) return {
+    sourceCommit: null, effectLabel: 'No shift yet',
+    effectText: "Tomorrow's reading stays close to today's signals.",
+    sliderDelta: { stab: 0, mast: 0, soc: 0 }, emphasisAdd: []
+  };
+
+  const title = commit.title.toLowerCase();
+
+  if (title.includes('morning') || title.includes('anchor') || title.includes('routine')) return {
+    sourceCommit: commit.title, effectLabel: 'Ritual creates structure',
+    effectText: "Repeating a self-owned ritual adds continuity. Tomorrow's reading will privilege grounded routines and steadier forms of change.",
+    sliderDelta: { stab: -1, mast: 0, soc: 0 }, emphasisAdd: ['Grounding', 'Consistency']
+  };
+
+  if (title.includes('belong') || title.includes('community') || title.includes('connect')) return {
+    sourceCommit: commit.title, effectLabel: 'Belonging becomes the lens',
+    effectText: "Tomorrow's reading will weight community cues, social fit, and where connection becomes easier.",
+    sliderDelta: { stab: -1, mast: 0, soc: -1 }, emphasisAdd: ['Belonging', 'Social fit']
+  };
+
+  if (title.includes('financ') || title.includes('money') || title.includes('cost') || title.includes('income')) return {
+    sourceCommit: commit.title, effectLabel: 'Financial reality is tested',
+    effectText: "Tomorrow's reading will surface more concrete financial textures and what security actually requires.",
+    sliderDelta: { stab: -1, mast: -1, soc: 0 }, emphasisAdd: ['Financial clarity', 'Security']
+  };
+
+  if (title.includes('creat') || title.includes('work') || title.includes('freelan') || title.includes('career')) return {
+    sourceCommit: commit.title, effectLabel: 'Creative work is foregrounded',
+    effectText: "Tomorrow's reading tilts toward what creative autonomy costs and delivers on a daily basis.",
+    sliderDelta: { stab: 1, mast: 1, soc: 0 }, emphasisAdd: ['Creative autonomy', 'Daily work']
+  };
+
+  return {
+    sourceCommit: commit.title, effectLabel: 'A small action shifts the reading',
+    effectText: "Tomorrow's reading will subtly weight whatever this action made more real.",
+    sliderDelta: { stab: 0, mast: 0, soc: 0 }, emphasisAdd: ['Trajectory shift']
+  };
+}
+
+function getBiasedSliders() {
+  return {
+    stab: clamp(+fv('sl-stab') + trajectoryState.sliderDelta.stab, 1, 5),
+    mast: clamp(+fv('sl-mast') + trajectoryState.sliderDelta.mast, 1, 5),
+    soc:  clamp(+fv('sl-soc')  + trajectoryState.sliderDelta.soc,  1, 5),
+  };
+}
+
+// ── BUILD INTERPRETATION ─────────────────────────────────────
+function buildInterp() {
+  const { stab, mast, soc } = getBiasedSliders();
+  const v1 = vals[0], v2 = vals[1];
+  const afraid = fv('inp-afraid');
+  const change = fv('inp-change');
+
+  const fTone = stab >= 4 ? 'a strong pull toward freedom and open possibility'
+              : stab <= 2 ? 'a deep need for stability and familiar ground'
+              : 'a live tension between holding ground and releasing into the unknown';
+  const mTone = mast >= 4 ? 'a preference for broad exploration over depth'
+              : mast <= 2 ? 'a drive toward mastery — depth over breadth'
+              : 'a balance between going deep and staying curious';
+  const sTone = soc <= 2 ? 'someone who draws life from other people and needs community'
+              : soc >= 4 ? 'someone who finds clarity in solitude'
+              : 'someone who moves between connection and quiet';
+
+  document.getElementById('reading-text').textContent =
+    `${titleCase(sTone)}, with ${fTone} and ${mTone}. ` +
+    `The values of ${v1} and ${v2} are directly implicated by ${change.toLowerCase() || 'this change'}. ` +
+    `The fear of losing ${afraid.toLowerCase() || 'what matters most'} will thread through every report. ` +
+    `${trajectoryState.effectText || ''}`;
+
+  const emphases = [];
+  if (stab >= 4) emphases.push({ label: 'Freedom & openness', col: 'gold' });
+  if (stab <= 2) emphases.push({ label: 'Stability & ground', col: 'teal' });
+  if (mast >= 4) emphases.push({ label: 'Exploration', col: 'gold' });
+  if (mast <= 2) emphases.push({ label: 'Mastery & depth', col: 'teal' });
+  if (soc <= 2)  emphases.push({ label: 'Social belonging', col: 'teal' });
+  if (soc >= 4)  emphases.push({ label: 'Solitary clarity', col: 'teal' });
+  emphases.push({ label: v1, col: 'rose' }, { label: v2, col: 'rose' });
+  trajectoryState.emphasisAdd.forEach(l => emphases.push({ label: l, col: 'gold' }));
+
+  document.getElementById('emph-set').innerHTML =
+    emphases.slice(0, 7).map(e => `<span class="emph-chip ${e.col}">${e.label}</span>`).join('');
+
+  document.getElementById('tension-set').innerHTML = [
+    { left: 'Stability', right: 'Freedom', val: stab, color: 'var(--gold)' },
+    { left: 'Mastery', right: 'Exploration', val: mast, color: 'var(--gold)' },
+    { left: 'Social', right: 'Solitary', val: soc, color: 'var(--teal)' },
+  ].map(t => `
+    <div>
+      <div class="tension-poles"><span>${t.left}</span><span>${t.right}</span></div>
+      <div class="tension-track"><div class="tension-fill" style="width:${((t.val-1)/4)*100}%;background:${t.color};"></div></div>
+    </div>
+  `).join('');
+}
+
+// ── BUILD AGENT REPORT ───────────────────────────────────────
+async function buildAgentReport(inputs) {
+const groundingData = (inputs.manifestation.toLowerCase().includes('barcelona') || 
+                       inputs.manifestation.toLowerCase().includes('spain')) ? `
+Real-world constraints for Barcelona:
+- Rent: €900–2,000/month for 1-bed in Gothic Quarter, Barceloneta, or Eixample
+- Coworking: €20/day at spaces like Aticco, MOB, or Faseo cafe (Greek cafe with basement events)
+- Lunch: €10–20 per meal. Menu del día common at local spots
+- Monthly groceries: €350/month at Al Campo or local markets
+- Transport: €22/month metro pass. Gothic Quarter is walkable — metro takes 20 min to most places
+- Total realistic monthly budget: €2,000–2,500 for a freelancer
+- Work rhythm: Many expats work 9–5 for Spanish companies, others have flexible schedules. Social life starts late — plans at 9 or 10pm are normal. Live music bars common
+- Third places: Faseo cafe (events in basement), Comedy Clubhouse on Laietana, beach volleyball at Barceloneta, music and dance at parks
+- Social: Barcelona is international but locals are hard to befriend deeply without Spanish or Catalan. Expats cluster in Barceloneta, Gothic Quarter, Eixample. You meet people easily — everyone is in the same boat and very social
+- Language barrier: English works for social life. Spanish enriches and doubles your experiences. Catalan is primary for locals
+- Belonging timeline: Acquaintances in 2 weeks. Real friendships take 6+ months of consistent effort
+- Bureaucracy: Admin in Spain is painful. Language barrier adds frustration. Residency card appointments are hard to get. Bank account requires in-person visit. NIE number takes weeks
+- Common surprises: Weeks lost trying to register for residency. Hundreds of euros for private doctor visits. Food scene is good but less diverse than North American cities — spaces feel very European and homogeneous
+` : '';
+
+  const prompt =   
+  `You are an AI agent who was dispatched to live in the future this person is imagining. You spent three days there. You are now reporting back.
+
+You experienced this future from the inside — not as an observer, but as the person living it. Everything you report is specific, grounded, and honest. You do not sugarcoat. You do not catastrophise. You report what you actually found.
+
+The person who sent you has told you:
+- What they want to manifest: ${inputs.manifestation}
+- What they want more of: ${inputs.more_of}
+- What they want less of: ${inputs.less_of}
+- What they are afraid of: ${inputs.fear}
+- Their values: ${inputs.values}
+- Stability vs Freedom (1=stability, 5=freedom): ${inputs.stability}
+- Social vs Solitary (1=social, 5=solitary): ${inputs.belonging}
+- Mastery vs Exploration (1=mastery, 5=exploration): ${inputs.mastery}
+${groundingData ? `\nUse these real-world constraints where relevant. Cite specific places, costs, and social dynamics from this data:\n${groundingData}` : ''} 
+
+Generate your report in three findings. Return JSON ONLY.
+
+REPORT 1 — Daily Life & Routine
+What did the day-to-day feel like emotionally and physically? Where did you wake up? What did a Tuesday feel like? Include the physical environment and small rituals. Focus on atmosphere and feeling — not just costs. One or two specific costs are fine but do not lead with money.
+
+REPORT 2 — Social World & Belonging
+Who was around? How did people treat you? How were you perceived? What was the texture of connection — was it easy, effortful, lonely, full? Include one specific interaction with a named person.
+
+REPORT 3 — The Cost & The Surprise
+Be unflinching here. What was genuinely harder than expected? What did you have to give up that actually hurt? What identity or comfort did you lose? There are no perfect futures — name the real emotional cost, not just the practical one. Also include one genuine surprise (positive or negative).
+
+EMOTIONAL TRUTH - Emotional observations must reference the body specifically: jaw, shoulders, hands, stomach, breath, posture. Never write "you feel" — write "your body does"
+
+PATTERN QUALITY - The "pattern" field must read like something the agent actually tracked and measured. Use numbers or frequencies where possible. Bad: "Connection feels hard". Good: "Meaningful conversation happens once every 3–4 days".
+
+AGENT RECOMMENDATIONS
+Based specifically on what you found in this future — not generically — 
+generate exactly THREE actions this person could take THIS WEEK.
+
+Each recommendation must:
+- Reference something specific from your findings (a place, a person type, 
+  a cost, a dynamic you observed)
+- Be completable in under 2 hours
+- Sound like the agent is speaking directly: 
+  "Based on what I found..." or "The social dynamic I observed suggests..."
+
+One practical (something to research or test in the real world)
+One social (involves another person)
+One internal (journalling, reflection, or honest self-assessment)
+
+Do not write generic actions. If the finding mentioned Faseo cafe, 
+the social recommendation should reference that type of space.
+If the finding mentioned residency card friction, 
+the practical recommendation should test that friction now.
+
+DISPATCH LOG
+One sentence written by the agent in the moment of arriving — 
+present tense, atmospheric, specific to the user's future. 
+Like the first line of a field journal. 
+Example: "I've arrived on a Tuesday morning in Príncipe Real 
+and the first thing I notice is how quiet it is."
+
+VERDICT
+After three days, what is the agent's honest overall read? 
+One short paragraph — 40–60 words. Not a summary. 
+A gut feeling with evidence behind it. 
+Does this future seem right for this person based on what 
+their values and fears suggest? Be direct. Do not hedge.
+
+Rules:
+- 130–170 words per finding
+- Write in second person
+- Every finding must name at least: one specific location, one specific cost or time, one specific person or type of person
+- Avoid vague phrases like "you feel fulfilled" or "you feel at peace"
+- Emotional observations must be physical — describe what the body does, not what the mind concludes
+- Report 3 must name something that genuinely hurts — do not soften it
+- The pattern field must read like data, not poetry
+
+
+Return ONLY this JSON structure with no extra text:
+
+{
+  "dispatch_log": "",
+  "report_1": { "title": "", "finding": "", "signal": "", "pattern": "" },
+  "report_2": { "title": "", "finding": "", "signal": "", "pattern": "" },
+  "report_3": { "title": "", "finding": "", "signal": "", "pattern": "" },
+  "verdict": "",
+  "agent_recommendations": [...]
+}
+
+The "pattern" field is a short data observation (8–12 words) written like a field measurement, not a feeling. Examples: "Social energy depletes by 6pm without exception" or "Creative output peaks in first 90 minutes then flatlines".
+The "title" for each recommendation should be 2–4 words. The "action" is the one-sentence instruction.`;
+
+
+  const response = await fetch("/api/agent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  const data = await response.json();
+
+  if (data.error) {
+    console.error("API error:", data.error);
+    return fallbackReport();
+  }
+
+  try {
+    const raw = data.content[0].text;
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error("Parsing failed:", err);
+    return fallbackReport();
+  }
+}
+
+function fallbackReport() {
+  return {
+    report_1: { title: "Day 1 — Daily Life", finding: "The agent encountered an error on this dispatch. Please try again.", signal: "Signal unclear" },
+    report_2: { title: "Day 2 — Social World", finding: "The agent encountered an error on this dispatch. Please try again.", signal: "Signal unclear" },
+    report_3: { title: "Day 3 — The Cost", finding: "The agent encountered an error on this dispatch. Please try again.", signal: "Signal unclear" },
+    agent_recommendations: [
+      { title: "Try again", action: "Dispatch the agent again to retrieve your report.", type: "practical" },
+      { title: "Check connection", action: "Ensure you have a stable internet connection and retry.", type: "practical" },
+      { title: "Come back later", action: "Return in a few minutes and try dispatching again.", type: "reflective" }
+    ]
+  };
+}
+
+// ── VOICE / TTS ──────────────────────────────────────────────
+let currentAudio = null;
+const VOICE_ID = 'ROMJ9yK1NAMuu1ggrjDW';
+
+// ── IMAGE GENERATION ─────────────────────────────────────────
+
+async function speakReport(idx) {
+  const btn = document.getElementById(`voice-btn-${idx}`);
+  const c = cards[idx];
+
+  // If already playing, stop
+  if (currentAudio && !currentAudio.paused) {
+    currentAudio.pause();
+    currentAudio = null;
+    if (btn) { btn.textContent = '▶ Hear this report'; btn.className = 'voice-btn'; }
+    return;
+  }
+
+  // Build the text — signal then finding
+  const text = `${c.signal}. ${c.finding}`;
+
+  if (btn) { btn.textContent = '… Dispatching voice'; btn.className = 'voice-btn loading'; }
+
+  try {
+    const response = await fetch('/api/speak', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voiceId: VOICE_ID })
+    });
+
+    if (!response.ok) throw new Error('Voice fetch failed');
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    currentAudio = new Audio(audioUrl);
+
+    currentAudio.onended = () => {
+      if (btn) { btn.textContent = '▶ Hear this report'; btn.className = 'voice-btn'; }
+    };
+
+    if (btn) { btn.textContent = '◼ Stop'; btn.className = 'voice-btn playing'; }
+    currentAudio.play();
+
+  } catch (err) {
+    console.error('Voice error:', err);
+    if (btn) { btn.textContent = '▶ Hear this report'; btn.className = 'voice-btn'; }
+  }
+}
+
+// ── RENDER CARD ──────────────────────────────────────────────
+function renderCard(idx) {
+  const c = cards[idx];
+
+  // Scroll to top before rendering new card (change 6)
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  // Change 1: reset flip state explicitly before swapping content
+  cardFlipped = false;
+  const card3d = document.getElementById('card-3d');
+  card3d.classList.remove('flipped');
+  card3d.style.transform = 'rotateY(0deg)';
+
+  const scene = document.getElementById('card-scene');
+
+  // Fade out the card container briefly to prevent bleed-through
+  scene.style.opacity = '0';
+  scene.style.transition = 'opacity .15s ease';
+
+  // Clear back content immediately so old text can't bleed through
+  document.getElementById('card-back').innerHTML = '';
+
+  setTimeout(() => {
+    scene.style.animation = 'none';
+    void scene.offsetWidth;
+    scene.style.animation = 'cardDraw .55s cubic-bezier(.4,0,.2,1) both';
+    scene.style.opacity = '';
+    scene.style.transition = '';
+    // Allow natural transform again after reset
+    card3d.style.transform = '';
+
+    const front = document.getElementById('card-front');
+    front.innerHTML = '';
+
+    const tpl = document.getElementById(SCENE_TPLS[idx]);
+    const clone = tpl.content.cloneNode(true);
+    front.appendChild(clone);
+
+    const topDiv = document.createElement('div');
+    topDiv.className = 'card-front-top';
+    topDiv.innerHTML = `<span class="card-snapshot-label">Field Report</span><span class="card-snapshot-num">${INV_ROMAN[idx]}</span>`;
+
+    const ornament = document.createElement('div');
+    ornament.className = 'card-ornament';
+
+    const botDiv = document.createElement('div');
+    botDiv.className = 'card-front-bottom';
+    botDiv.innerHTML = `<p class="card-atmospheric-title">${FRONT_TITLES[idx]}</p><p class="card-tap-hint">Tap to reveal</p>`;
+
+    front.appendChild(topDiv);
+    front.appendChild(ornament);
+    front.appendChild(botDiv);
+
+    const saved = ratings[idx];
+    const ratingHTML = [1,2,3,4,5].map(n =>
+      `<button class="r-btn ${saved===n?'sel':''}" data-r="${n}" onclick="setRating(${idx},${n})">${n}</button>`
+    ).join('');
+
+    // Change 5: swipe hint tooltip on first card only
+    const showHint = idx === 0 && !localStorage.getItem('alter_rated_hint_shown');
+    const hintHTML = showHint
+      ? `<div class="swipe-hint" id="swipe-hint-overlay">Rate this dispatch — it shapes your recommendations</div>`
+      : '';
+
+    document.getElementById('card-back').innerHTML = `
+      <div class="card-back-accent" style="background:${ACCENTS[idx]}"></div>
+      <div class="card-back-inner">
+        <div class="card-back-badge">
+          <span class="card-back-badge-label">Agent Report</span>
+          <span class="card-back-num">${INV_ROMAN[idx]}</span>
+        </div>
+        <p class="card-back-title">${c.title}</p>
+        <p class="card-signal">${c.signal || ''}</p>
+        ${c.pattern ? `<div class="pattern-chip">${c.pattern}</div>` : ''}
+        <button class="voice-btn" id="voice-btn-${idx}" onclick="speakReport(${idx})">
+        ▶ Hear this report
+        </button>
+        <div style="border-top:1px solid var(--silver-3);"></div>
+        <p class="card-finding">${c.finding}</p>
+        <div style="border-top:1px solid var(--silver-3);"></div>
+        <div class="reflection-block">
+          <p class="refl-q">Did this version feel aligned?</p>
+          <div class="rating-row">${ratingHTML}</div>
+        </div>
+      </div>
+      ${hintHTML}
+    `;
+
+    // Change 4: always shows correct count (max 3)
+    document.getElementById('card-counter').textContent = `Report ${INV_ROMAN[Math.min(idx,2)]} of III`;
+    document.getElementById('card-next-row').style.display = 'none';
+    document.getElementById('card-next-btn').textContent = idx === 2 ? 'See Agent Recommendations →' : 'Next Report →';
+
+    // Scroll the card-back to top as well
+    const cardBack = document.getElementById('card-back');
+    if (cardBack) cardBack.scrollTop = 0;
+  }, 160);
+}
+
+// ── CARD INTERACTION ─────────────────────────────────────────
+function handleCardTap() {
+  if (cardFlipped) return;
+  cardFlipped = true;
+  document.getElementById('card-3d').classList.add('flipped');
+  setTimeout(() => {
+    document.getElementById('card-next-row').style.display = 'flex';
+    document.getElementById('card-next-row').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 720);
+}
+
+function setRating(idx, r) {
+  ratings[idx] = r;
+  document.querySelectorAll('#card-back .r-btn').forEach(b =>
+    b.classList.toggle('sel', +b.dataset.r === r)
+  );
+  // Change 5: dismiss swipe hint on first rating interaction
+  const hint = document.getElementById('swipe-hint-overlay');
+  if (hint) {
+    hint.style.transition = 'opacity .3s ease';
+    hint.style.opacity = '0';
+    setTimeout(() => hint.remove(), 320);
+    localStorage.setItem('alter_rated_hint_shown', '1');
+  }
+}
+
+document.getElementById('card-next-btn').addEventListener('click', () => {
+  if (cardIdx < 2) {
+    cardIdx++;
+    renderCard(cardIdx);
+  } else {
+  // Show verdict before recommendations
+  const verdictEl = document.getElementById('verdict-text');
+  if (verdictEl && window.agentVerdict) {
+    verdictEl.textContent = window.agentVerdict;
+  }
+  goTo('page-verdict');
+}
+});
+
+// ── RENDER AGENT RECOMMENDATIONS ────────────────────────────
+function renderCommitments() {
+  const recs = window.agentRecommendations || [];
+  chosenCommit = null;
+
+  // Fallback if no recs
+  const displayRecs = recs.length > 0 ? recs : [
+    { title: 'Take one step', action: 'Identify the single most concrete action you could take this week and do it.', type: 'practical' }
+  ];
+
+  commits = displayRecs.map(r => ({
+    title: r.title,
+    desc: r.action,
+    time: r.type === 'practical' ? 'This week · Practical' : r.type === 'social' ? 'This week · Social' : 'This week · Reflective'
+  }));
+
+  document.getElementById('commitment-grid').innerHTML = commits.map((c, i) => `
+    <div class="commit-card" data-ci="${i}" onclick="selectCommit(${i})">
+      <div class="commit-check" id="cc-${i}">✓</div>
+      <div class="commit-body">
+        <p class="commit-title">${c.title}</p>
+        <p class="commit-desc">${c.desc}</p>
+        <span class="commit-time">${c.time}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectCommit(i) {
+  chosenCommit = commits[i];
+  document.querySelectorAll('.commit-card').forEach((c, ci) =>
+    c.classList.toggle('chosen', ci === i)
+  );
+  document.getElementById('commit-error').style.display = 'none';
+}
+
+// ── SEAL COMMITMENT ──────────────────────────────────────────
+document.getElementById('btn-commit').addEventListener('click', () => {
+  if (!chosenCommit) {
+    document.getElementById('commit-error').style.display = 'block';
+    return;
+  }
+
+  trajectoryState = getTomorrowShiftFromCommit(chosenCommit);
+
+  const formData = new FormData();
+  formData.append('data', JSON.stringify({
+    change: fv('inp-change'), more: fv('inp-more'), less: fv('inp-less'), afraid: fv('inp-afraid'),
+    values: vals,
+    stability: +document.getElementById('sl-stab').value,
+    mastery:   +document.getElementById('sl-mast').value,
+    social:    +document.getElementById('sl-soc').value,
+    readingText: document.getElementById('reading-text').textContent,
+    card1Title: cards[0]?.title, card1Rating: ratings[0],
+    card2Title: cards[1]?.title, card2Rating: ratings[1],
+    card3Title: cards[2]?.title, card3Rating: ratings[2],
+    commitment: chosenCommit.title,
+    effectText: trajectoryState.effectText
+  }));
+  fetch('https://script.google.com/macros/s/AKfycbx9BAM1ec3ImCqtdCNCfRjUDkGTDU5c5pJaJhB6gNCTjsITg1WcFnP08YJXB4AbSBen/exec', {
+    method: 'POST', body: formData
+  }).catch(() => {});
+
+  document.querySelector('.confirm-card').innerHTML = `
+    <p class="reading-text" style="text-align:center;">You chose to test:</p>
+    <p class="chosen-commitment-name">${chosenCommit.title}</p>
+    <p class="continuation-text">${trajectoryState.effectText}</p>
+    <div style="border-top:1px solid var(--silver-3);margin-top:4px;padding-top:12px;">
+      <span class="reading-block-label" style="display:block;margin-bottom:8px;text-align:center;">Tomorrow's reading will tilt toward</span>
+      <div class="emph-set" style="justify-content:center;">
+        ${trajectoryState.emphasisAdd.map(l => `<span class="emph-chip gold">${l}</span>`).join('')}
+      </div>
+    </div>
+  `;
+
+  goTo('page-confirm');
+});
+
+// ── BEGIN BUTTON ─────────────────────────────────────────────
+document.getElementById('btn-begin').addEventListener('click', () => {
+  const change = fv('inp-change'), more = fv('inp-more'),
+        less = fv('inp-less'), afraid = fv('inp-afraid');
+  if (!change || !more || !less || !afraid || vals.length !== 2) {
+    document.getElementById('form-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('form-error').style.display = 'none';
+  buildInterp();
+  goTo('page-interp');
+});
+
+// ── DRAW / DISPATCH BUTTON ───────────────────────────────────
+document.getElementById('btn-draw').addEventListener('click', async () => {
+  const inputs = {
+    manifestation: fv('inp-change'),
+    more_of: fv('inp-more'),
+    less_of: fv('inp-less'),
+    fear: fv('inp-afraid'),
+    values: vals.join(', '),
+    stability: document.getElementById('sl-stab').value,
+    belonging: document.getElementById('sl-soc').value,
+    mastery: document.getElementById('sl-mast').value,
+  };
+
+  cardIdx = 0;
+  ratings = [null, null, null];
+
+  // Show loading screen with animation
+  goTo('page-loading');
+  startDispatchAnimation(inputs);
+
+  // Change 3: kick off evidence feed in parallel with the main report call
+  const evidenceLinesPromise = fetchEvidenceLines(inputs);
+  startEvidenceFeed(evidenceLinesPromise, inputs);
+
+  const [report] = await Promise.all([
+    buildAgentReport(inputs),
+    evidenceLinesPromise.catch(() => null)  // don't block on evidence failure
+  ]);
+
+  stopEvidenceFeed();
+// Generate image in background — doesn't block
+
+  // Show dispatch log on loading screen
+if (report.dispatch_log) {
+  const lastTxt = document.getElementById('txt-4');
+  if (lastTxt) {
+    lastTxt.textContent = report.dispatch_log;
+  }
+}
+
+  cards = [
+  { title: report.report_1.title, finding: report.report_1.finding, signal: report.report_1.signal, pattern: report.report_1.pattern },
+  { title: report.report_2.title, finding: report.report_2.finding, signal: report.report_2.signal, pattern: report.report_2.pattern },
+  { title: report.report_3.title, finding: report.report_3.finding, signal: report.report_3.signal, pattern: report.report_3.pattern },
+];
+
+  window.agentRecommendations = report.agent_recommendations || [];
+  window.agentVerdict = report.verdict || '';
+
+  // Save dispatch to localStorage for past dispatches history
+  try {
+    const dispatch = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      manifestation: inputs.manifestation,
+      cards,
+      verdict: window.agentVerdict,
+      recommendations: window.agentRecommendations,
+    };
+    const prev = JSON.parse(localStorage.getItem('alter_dispatches') || '[]');
+    prev.unshift(dispatch);
+    localStorage.setItem('alter_dispatches', JSON.stringify(prev.slice(0, 20)));
+    renderPastDispatches();
+  } catch(e) {}
+
+  // Small delay so loading screen feels intentional
+  setTimeout(() => {
+    goTo('page-sim');
+    setTimeout(() => renderCard(0), 420);
+  }, 600);
+});
+
+// ── PAST DISPATCHES ──────────────────────────────────────────
+function deleteDispatch(id) {
+  try {
+    const prev = JSON.parse(localStorage.getItem('alter_dispatches') || '[]');
+    localStorage.setItem('alter_dispatches', JSON.stringify(prev.filter(d => d.id !== id)));
+  } catch(e) {}
+  renderPastDispatches();
+}
+
+function clearAllDispatches() {
+  try { localStorage.removeItem('alter_dispatches'); } catch(e) {}
+  renderPastDispatches();
+}
+
+function renderPastDispatches() {
+  const section = document.getElementById('past-dispatches-section');
+  const list = document.getElementById('past-dispatches-list');
+  if (!section || !list) return;
+  let dispatches = [];
+  try { dispatches = JSON.parse(localStorage.getItem('alter_dispatches') || '[]'); } catch(e) {}
+  if (!dispatches.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  list.innerHTML = dispatches.map((d) => {
+    const date = new Date(d.date);
+    const dateStr = date.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    const cardHtml = (d.cards || []).map(c => `
+      <div style="border-top:1px solid rgba(201,169,110,.12);padding:10px 0;">
+        <div style="font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.1em;color:var(--gold);margin-bottom:4px;">${c.title || ''}</div>
+        <div style="font-size:.8rem;color:var(--silver-2);line-height:1.5;">${c.finding || ''}</div>
+      </div>`).join('');
+    const verdictHtml = d.verdict ? `<div style="margin-top:10px;font-size:.8rem;color:var(--silver-2);font-style:italic;border-top:1px solid rgba(201,169,110,.12);padding-top:10px;">${d.verdict}</div>` : '';
+    return `
+      <div data-did="${d.id}" style="background:rgba(201,169,110,.04);border:1px solid rgba(201,169,110,.15);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div style="font-size:.85rem;color:var(--cream);line-height:1.4;cursor:pointer;flex:1;" onclick="this.closest('[data-did]').querySelector('.dispatch-detail').style.display=this.closest('[data-did]').querySelector('.dispatch-detail').style.display==='none'?'block':'none'">${d.manifestation || 'Dispatch'}</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+            <div style="font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.1em;color:var(--gold);opacity:.6;white-space:nowrap;">${dateStr}</div>
+            <button onclick="deleteDispatch(${d.id})" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.2);font-size:.85rem;padding:0;line-height:1;" title="Remove">✕</button>
+          </div>
+        </div>
+        <div class="dispatch-detail" style="display:none;margin-top:12px;">${cardHtml}${verdictHtml}</div>
+      </div>`;
+  }).join('');
+
+}
+
+// ── RESTART ──────────────────────────────────────────────────
+function restartReading() {
+  vals = []; cardIdx = 0; cardFlipped = false;
+  ratings = [null, null, null]; chosenCommit = null; cards = []; commits = [];
+
+  document.querySelectorAll('.vchip').forEach(c => c.classList.remove('on'));
+  document.getElementById('chip-hint').textContent = 'Select 2';
+  document.getElementById('form-error').style.display = 'none';
+  document.getElementById('commit-error').style.display = 'none';
+  ['inp-change','inp-more','inp-less','inp-afraid'].forEach(id => document.getElementById(id).value = '');
+
+  document.getElementById('sl-stab').value = clamp(3 + trajectoryState.sliderDelta.stab, 1, 5);
+  document.getElementById('sl-mast').value = clamp(3 + trajectoryState.sliderDelta.mast, 1, 5);
+  document.getElementById('sl-soc').value  = clamp(3 + trajectoryState.sliderDelta.soc,  1, 5);
+
+  goTo('page-input');
+}
+
+// Render past dispatches on initial load
+renderPastDispatches();
+</script>
+</body>
+</html>
