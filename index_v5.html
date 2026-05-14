@@ -501,11 +501,14 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
 .reading-card {
   width:100%;
-  background:linear-gradient(145deg, rgba(201,169,110,.07), rgba(201,169,110,.02));
+  background:linear-gradient(145deg, rgba(201,169,110,.1), rgba(19,21,26,.45));
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
   border:1px solid rgba(201,169,110,.25);
   border-radius:var(--r-card);
   padding:28px 24px;
   display:flex; flex-direction:column; gap:18px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
 }
 .reading-block-label {
   font-family:'Cinzel', serif;
@@ -675,13 +678,15 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 }
 
 .card-front {
-  background: radial-gradient(ellipse 90% 65% at 50% 55%, rgba(201,169,110,.22) 0%, rgba(19,21,26,.98) 65%),
-              linear-gradient(160deg, #16181f 0%, #0e0f13 100%);
+  background: radial-gradient(ellipse 90% 65% at 50% 55%, rgba(201,169,110,.18) 0%, rgba(19,21,26,.55) 65%),
+              linear-gradient(160deg, rgba(30,33,42,.6) 0%, rgba(14,15,19,.55) 100%);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   border:1px solid rgba(201,169,110,.35);
   display:flex; flex-direction:column;
   align-items:center; justify-content:space-between;
   padding:28px 22px;
-  box-shadow:0 2px 0 rgba(201,169,110,.2),0 24px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.07);
+  box-shadow:0 2px 0 rgba(201,169,110,.2),0 24px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12);
   animation: cardGlow 4s ease-in-out infinite alternate;
 }
 @keyframes cardGlow {
@@ -736,11 +741,13 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
 
 /* Card back — taller, more room for text */
 .card-back {
-  background:var(--ink-2);
+  background: linear-gradient(160deg, rgba(28,31,39,.62) 0%, rgba(14,15,19,.58) 100%);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   border:1px solid rgba(201,169,110,.22);
   transform:rotateY(180deg);
   display:flex; flex-direction:column; padding:0;
-  box-shadow:0 2px 0 rgba(201,169,110,.12),0 24px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow:0 2px 0 rgba(201,169,110,.12),0 24px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1);
   overflow-y:auto;
   border-radius:var(--r-card);
 }
