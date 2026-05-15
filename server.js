@@ -107,8 +107,7 @@ app.get('/api/expanders', async (req, res) => {
   if (!query) return res.json([]);
 
   const subreddits = 'ManifestationUpdate+lawofattraction+digitalnomad+careerguidance+selfimprovement+ExpatFIRE+financialindependence';
-  const biasedQuery = `${query} I did made the leap update`;
-  const url = `https://www.reddit.com/r/${subreddits}/search.json?q=${encodeURIComponent(biasedQuery)}&restrict_sr=true&sort=relevance&t=all&limit=25`;
+  const url = `https://www.reddit.com/r/${subreddits}/search.json?q=${encodeURIComponent(query)}&restrict_sr=true&sort=relevance&t=all&limit=25`;
 
   console.log('[expanders] fetching:', url);
 
@@ -127,7 +126,7 @@ app.get('/api/expanders', async (req, res) => {
     const negativeKeywords = ['hate', 'terrible', 'worst', 'cooked', 'doomed', 'waste', 'regret', 'mistake', 'failed', 'depression', 'anxiety', 'suicid', 'scam', 'trap', 'avoid', 'warning'];
     const filtered = posts.filter(p => {
       if (!p.selftext || p.selftext === '[deleted]' || p.selftext === '[removed]') return false;
-      if (p.selftext.length < 50 || p.selftext.length > 400) return false;
+      if (p.selftext.length < 50 || p.selftext.length > 600) return false;
       const lower = p.selftext.toLowerCase();
       if (negativeKeywords.some(k => lower.includes(k))) return false;
       return true;

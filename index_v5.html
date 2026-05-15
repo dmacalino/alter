@@ -2553,15 +2553,14 @@ const NEGATIVE_KEYWORDS = ['hate', 'terrible', 'worst', 'cooked', 'doomed', 'was
 
 async function fetchRedditDirect(query) {
   const subreddits = 'ManifestationUpdate+lawofattraction+digitalnomad+careerguidance+selfimprovement+ExpatFIRE+financialindependence';
-  const biasedQuery = `${query} I did made the leap update`;
-  const url = `https://www.reddit.com/r/${subreddits}/search.json?q=${encodeURIComponent(biasedQuery)}&restrict_sr=true&sort=relevance&t=all&limit=25`;
+  const url = `https://www.reddit.com/r/${subreddits}/search.json?q=${encodeURIComponent(query)}&restrict_sr=true&sort=relevance&t=all&limit=25`;
   const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
   if (!res.ok) throw new Error(`Reddit ${res.status}`);
   const data = await res.json();
   const posts = (data?.data?.children || []).map(c => c.data);
   const filtered = posts.filter(p => {
     if (!p.selftext || p.selftext === '[deleted]' || p.selftext === '[removed]') return false;
-    if (p.selftext.length < 50 || p.selftext.length > 400) return false;
+    if (p.selftext.length < 50 || p.selftext.length > 600) return false;
     const lower = p.selftext.toLowerCase();
     if (NEGATIVE_KEYWORDS.some(k => lower.includes(k))) return false;
     return true;
