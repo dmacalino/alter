@@ -968,7 +968,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
   display:flex;
   flex-direction:column;
   gap:8px;
-  max-height:160px;
+  max-height:180px;
   overflow:hidden;
   position:relative;
 }
@@ -1843,6 +1843,10 @@ function startEvidenceFeed(linesPromise, inputs) {
     const ss = String(ts.getSeconds()).padStart(2,'0');
     div.textContent = `[${hh}:${mm}:${ss}] ${text}`;
     feed.appendChild(div);
+
+    // Keep at most 5 lines so the container never clips mid-character
+    const lines = feed.querySelectorAll('.evidence-line');
+    if (lines.length > 5) lines[0].remove();
 
     requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add('visible')));
 
