@@ -106,8 +106,9 @@ app.get('/api/expanders', async (req, res) => {
   const query = req.query.query || '';
   if (!query) return res.json([]);
 
-  const subreddits = 'ManifestationUpdate+lawofattraction+digitalNomad+cscareerquestions+careerguidance';
-  const url = `https://www.reddit.com/r/${subreddits}/search.json?q=${encodeURIComponent(query)}&restrict_sr=true&sort=relevance&t=all&limit=25`;
+  const subreddits = 'ManifestationUpdate+lawofattraction+digitalnomad+careerguidance+selfimprovement+ExpatFIRE+financialindependence';
+  const biasedQuery = `${query} I did made the leap update`;
+  const url = `https://www.reddit.com/r/${subreddits}/search.json?q=${encodeURIComponent(biasedQuery)}&restrict_sr=true&sort=relevance&t=all&limit=25`;
 
   console.log('[expanders] fetching:', url);
 
@@ -123,13 +124,14 @@ app.get('/api/expanders', async (req, res) => {
     const posts = (data?.data?.children || []).map(c => c.data);
     console.log('[expanders] total posts returned:', posts.length);
 
-    const filtered = posts.filter(p =>
-      p.selftext &&
-      p.selftext !== '[deleted]' &&
-      p.selftext !== '[removed]' &&
-      p.selftext.length >= 50 &&
-      p.selftext.length <= 400
-    );
+    const negativeKeywords = ['hate', 'terrible', 'worst', 'cooked', 'doomed', 'waste', 'regret', 'mistake', 'failed', 'depression', 'anxiety', 'suicid', 'scam', 'trap', 'avoid', 'warning'];
+    const filtered = posts.filter(p => {
+      if (!p.selftext || p.selftext === '[deleted]' || p.selftext === '[removed]') return false;
+      if (p.selftext.length < 50 || p.selftext.length > 400) return false;
+      const lower = p.selftext.toLowerCase();
+      if (negativeKeywords.some(k => lower.includes(k))) return false;
+      return true;
+    });
     console.log('[expanders] posts passing 50-400 char filter:', filtered.length);
 
     const result = filtered.slice(0, 3).map(p => ({
