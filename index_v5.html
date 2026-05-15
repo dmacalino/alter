@@ -1428,7 +1428,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
       <p class="reading-text" id="verdict-text">—</p>
     </div>
   </div>
-  <button class="btn-ritual" onclick="goTo('page-expanders')">
+  <button class="btn-ritual" onclick="goToExpanders()">
     <span>Continue →</span>
   </button>
 </div>
@@ -1449,7 +1449,7 @@ input[type="range"]::-moz-range-thumb:hover { transform:scale(1.2); }
     <em style="font-family:'Crimson Pro',serif;color:var(--gold);opacity:.8;">You are not the first to stand at this edge.</em>
   </p>
 
-  <div class="expander-cards">
+  <div class="expander-cards" id="expander-cards-container">
 
     <div class="expander-card">
       <p class="expander-quote">"I kept telling myself I'd freelance 'when the time was right.' I did the scripting, the vision boards, all of it. What actually moved me was realising I already knew what the first three months would look like — the dry spell, the first real client, the moment I stopped checking my old salary. Once I could picture the hard parts clearly, the leap didn't feel like a leap anymore."</p>
@@ -2464,6 +2464,7 @@ document.getElementById('btn-draw').addEventListener('click', async () => {
     belonging: document.getElementById('sl-soc').value,
     mastery: document.getElementById('sl-mast').value,
   };
+  window.currentInputs = inputs;
 
   cardIdx = 0;
   ratings = [null, null, null];
@@ -2523,6 +2524,39 @@ if (report.dispatch_log) {
     setTimeout(() => renderCard(0), 420);
   }, 600);
 });
+
+// ── EXPANDERS ────────────────────────────────────────────────
+const FALLBACK_QUOTES = [
+  { quote: "I kept telling myself I'd freelance 'when the time was right.' I did the scripting, the vision boards, all of it. What actually moved me was realising I already knew what the first three months would look like — the dry spell, the first real client, the moment I stopped checking my old salary. Once I could picture the hard parts clearly, the leap didn't feel like a leap anymore.", subreddit: 'r/freelance' },
+  { quote: "Moved to Lisbon 14 months ago. The thing nobody tells you is that the loneliness in month two is real and it passes. I almost didn't go because I couldn't get past imagining that part. Once I mentally walked through it — like actually sat with what it would feel like — I stopped trying to avoid it and just planned for it.", subreddit: 'r/digitalnomad' },
+  { quote: "Left a salary I'd worked six years for to go back to making things with my hands. Everyone thought I was having a crisis. The only thing that made it feel survivable was running the numbers on what 'enough' actually looked like — turns out it was a lot less than I thought. The life I wanted was cheaper than the one I had.", subreddit: 'r/careerchange' },
+];
+
+function renderExpanderCards(quotes) {
+  const container = document.getElementById('expander-cards-container');
+  if (!container) return;
+  container.innerHTML = quotes.map(q => `
+    <div class="expander-card">
+      <p class="expander-quote">"${q.quote.replace(/"/g, '&quot;')}"</p>
+      <span class="expander-source">${q.subreddit}</span>
+    </div>
+  `).join('');
+}
+
+async function goToExpanders() {
+  goTo('page-expanders');
+  // Fallback shown immediately (already in HTML); attempt live fetch
+  const query = (window.currentInputs && window.currentInputs.manifestation) || '';
+  if (!query) return;
+  try {
+    const res = await fetch(`/api/expanders?query=${encodeURIComponent(query)}`);
+    if (!res.ok) throw new Error('non-ok');
+    const quotes = await res.json();
+    if (quotes && quotes.length > 0) renderExpanderCards(quotes);
+  } catch (e) {
+    // fallback already displayed — do nothing
+  }
+}
 
 // ── PAST DISPATCHES ──────────────────────────────────────────
 function deleteDispatch(id) {

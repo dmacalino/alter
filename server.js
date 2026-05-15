@@ -102,6 +102,44 @@ app.post('/api/speak', async (req, res) => {
   }
 });
 
+app.get('/api/expanders', async (req, res) => {
+  const query = req.query.query || '';
+  if (!query) return res.json([]);
+
+  const subreddits = [
+    'ManifestationUpdate',
+    'lawofattraction',
+    'digitalNomad',
+    'cscareerquestions',
+    'careerguidance'
+  ];
+  const subredditFilter = subreddits.map(s => `subreddit:${s}`).join(' OR ');
+  const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(query + ' ' + subredditFilter)}&limit=10&sort=top&t=all`;
+
+  try {
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'alter-prototype/1.0' }
+    });
+    if (!response.ok) throw new Error(`Reddit returned ${response.status}`);
+
+    const data = await response.json();
+    const posts = (data?.data?.children || []).map(c => c.data);
+
+    const filtered = posts
+      .filter(p => p.selftext && p.selftext.length >= 50 && p.selftext.length <= 400)
+      .slice(0, 3)
+      .map(p => ({
+        quote: p.selftext.trim(),
+        subreddit: `r/${p.subreddit}`
+      }));
+
+    return res.json(filtered);
+  } catch (err) {
+    console.error('Expanders fetch error:', err.message);
+    return res.json([]);
+  }
+});
+
 app.use(express.static(__dirname));
 
 app.listen(PORT, () => {
