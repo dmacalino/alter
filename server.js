@@ -106,36 +106,40 @@ app.get('/api/expanders', async (req, res) => {
   const query = req.query.query || '';
   if (!query) return res.json([]);
 
-  const subreddits = [
-    'ManifestationUpdate',
-    'lawofattraction',
-    'digitalNomad',
-    'cscareerquestions',
-    'careerguidance'
-  ];
-  const subredditFilter = subreddits.map(s => `subreddit:${s}`).join(' OR ');
-  const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(query + ' ' + subredditFilter)}&limit=10&sort=top&t=all`;
+  const subreddits = 'ManifestationUpdate+lawofattraction+digitalNomad+cscareerquestions+careerguidance';
+  const url = `https://www.reddit.com/r/${subreddits}/search.json?q=${encodeURIComponent(query)}&restrict_sr=true&sort=relevance&t=all&limit=25`;
+
+  console.log('[expanders] fetching:', url);
 
   try {
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'alter-prototype/1.0' }
+      headers: { 'User-Agent': 'alter-prototype/1.0 (server)' }
     });
+    console.log('[expanders] Reddit status:', response.status);
+
     if (!response.ok) throw new Error(`Reddit returned ${response.status}`);
 
     const data = await response.json();
     const posts = (data?.data?.children || []).map(c => c.data);
+    console.log('[expanders] total posts returned:', posts.length);
 
-    const filtered = posts
-      .filter(p => p.selftext && p.selftext.length >= 50 && p.selftext.length <= 400)
-      .slice(0, 3)
-      .map(p => ({
-        quote: p.selftext.trim(),
-        subreddit: `r/${p.subreddit}`
-      }));
+    const filtered = posts.filter(p =>
+      p.selftext &&
+      p.selftext !== '[deleted]' &&
+      p.selftext !== '[removed]' &&
+      p.selftext.length >= 50 &&
+      p.selftext.length <= 400
+    );
+    console.log('[expanders] posts passing 50-400 char filter:', filtered.length);
 
-    return res.json(filtered);
+    const result = filtered.slice(0, 3).map(p => ({
+      quote: p.selftext.trim(),
+      subreddit: `r/${p.subreddit}`
+    }));
+
+    return res.json(result);
   } catch (err) {
-    console.error('Expanders fetch error:', err.message);
+    console.error('[expanders] fetch error:', err.message);
     return res.json([]);
   }
 });

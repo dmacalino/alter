@@ -2543,18 +2543,45 @@ function renderExpanderCards(quotes) {
   `).join('');
 }
 
+async function fetchRedditDirect(query) {
+  const subreddits = 'ManifestationUpdate+lawofattraction+digitalNomad+cscareerquestions+careerguidance';
+  const url = `https://www.reddit.com/r/${subreddits}/search.json?q=${encodeURIComponent(query)}&restrict_sr=true&sort=relevance&t=all&limit=25`;
+  const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!res.ok) throw new Error(`Reddit ${res.status}`);
+  const data = await res.json();
+  const posts = (data?.data?.children || []).map(c => c.data);
+  const filtered = posts.filter(p =>
+    p.selftext &&
+    p.selftext !== '[deleted]' &&
+    p.selftext !== '[removed]' &&
+    p.selftext.length >= 50 &&
+    p.selftext.length <= 400
+  );
+  return filtered.slice(0, 3).map(p => ({ quote: p.selftext.trim(), subreddit: `r/${p.subreddit}` }));
+}
+
 async function goToExpanders() {
   goTo('page-expanders');
-  // Fallback shown immediately (already in HTML); attempt live fetch
   const query = (window.currentInputs && window.currentInputs.manifestation) || '';
   if (!query) return;
+
   try {
+    // Try browser-direct first (avoids server IP blocks from Reddit)
+    const quotes = await fetchRedditDirect(query);
+    if (quotes && quotes.length > 0) { renderExpanderCards(quotes); return; }
+  } catch (e) {
+    console.warn('[expanders] direct Reddit fetch failed:', e.message);
+  }
+
+  try {
+    // Fall back to server proxy
     const res = await fetch(`/api/expanders?query=${encodeURIComponent(query)}`);
     if (!res.ok) throw new Error('non-ok');
     const quotes = await res.json();
     if (quotes && quotes.length > 0) renderExpanderCards(quotes);
   } catch (e) {
-    // fallback already displayed — do nothing
+    console.warn('[expanders] server fetch failed:', e.message);
+    // hardcoded fallback already in DOM
   }
 }
 
